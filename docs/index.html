@@ -223,8 +223,10 @@ tr.on td{background:#eef2f7}
 <section id="act1"><div class="wrap">
   <div class="sec-label">Act one</div>
   <h2>What the published model scores on real footage</h2>
-  <p class="why"><b>Why this matters</b> Every number later is a comparison against this one. If
-  the scoring code here disagrees with the paper, nothing that follows is worth reading.</p>
+  <p class="why"><b>Why this matters</b> Every number later is a comparison against this one, so if
+  the scoring is wrong here it is wrong everywhere. The paper reports no directly comparable figure,
+  which means this cannot be checked against it and has to be checked against itself instead. The
+  coda adds the per-clip counts up again in your browser and says whether they give this number.</p>
   <div class="stat" id="baselinestat"></div>
   <div class="verdict" id="v1"></div>
 </div></section>
@@ -232,8 +234,9 @@ tr.on td{background:#eef2f7}
 <section id="act2"><div class="wrap">
   <div class="sec-label">Act two</div>
   <h2>One setting at a time</h2>
-  <p class="why"><b>Why this matters</b> A simulator with 27 settings has 27 ways to be wrong.
-  Knowing which three matter is worth more than tuning all of them.</p>
+  <p class="why"><b>Why this matters</b> A simulator with 27 settings has 27 ways to be wrong, and
+  a laboratory cannot tune all of them. Knowing which ones the result actually moves with is what
+  decides where the effort goes.</p>
   <p class="lede">Each row is one setting of the simulator, moved away from what the authors chose,
   with a model trained from scratch on the result and scored on the same real footage.</p>
   <div class="chips" id="axischips" role="group" aria-label="Choose a simulator setting"></div>
