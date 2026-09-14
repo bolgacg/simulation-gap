@@ -832,6 +832,17 @@
     // The dek must not describe a sweep that has not run. It states what has been done.
     var cfgAll = D.configs || [];
     var cfgDone = cfgAll.filter(function (c) { return c.real_score != null; }).length;
+    // The primer promises a method. If the training half did not run, saying so here
+    // rather than in act two keeps a reader from carrying an expectation for four
+    // screens and then finding an empty chart.
+    var p4 = $('#primer4');
+    if (p4 && !cfgDone) {
+      p4.innerHTML = 'The simulator has settings, and someone chose them. This page asks <b>which of ' +
+        'those choices the result actually depends on</b>, by changing one at a time, retraining, ' +
+        'and scoring against real footage a human labelled. <b>The retraining did not happen</b>, ' +
+        'for a reason act two gives, so four settings are set up and none is scored. What did ' +
+        'happen needed no training at all, and it is the last two sections.';
+    }
     $('#dek').innerHTML =
       'The detector this page takes apart was trained entirely on simulated worms, by the group that wrote both. ' +
       (cfgDone
