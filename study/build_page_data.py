@@ -2,7 +2,10 @@
 """Write docs/data.js from the sweep results."""
 from __future__ import annotations
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
@@ -10,6 +13,17 @@ CANDIDATES = [ROOT / "data" / "results.json", ROOT / "results.json", ROOT / "swe
 
 
 def main() -> int:
+    # Check the fields the page reads before writing anything. A page that renders a
+    # missing field as "n/a" looks identical to one whose measurement came out empty,
+    # and that class of bug has already survived several verification passes on the
+    # sibling project in this campaign.
+    try:
+        import check_contract
+        check_contract.main()
+        print("---")
+    except Exception as exc:
+        print(f"  contract check could not run: {exc}")
+
     src = next((p for p in CANDIDATES if p.exists()), None)
     if src is None:
         raise SystemExit("no results.json found in " + ", ".join(str(p) for p in CANDIDATES))
