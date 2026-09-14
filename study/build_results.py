@@ -467,9 +467,9 @@ def main():
                 "temporal sampling was already tuned to the camera.",
         },
         "limits": [
-            "No swept configuration was trained, so every configuration's real_score is "
-            "null and the thesis test has no verdict. The machine holding the GPU went "
-            "unreachable before the sweep could run and did not return.",
+            "No swept configuration was trained, so not one of them has a score on real "
+            "footage and the thesis test has no verdict at all. The machine holding the GPU "
+            "went unreachable before the sweep could run and did not return.",
             "The one model that was trained, the defaults, ran on a laptop CPU at a "
             "reduced size (128 px frames, 30 worms, batch 4) for 800 steps, and scores "
             "0.0 because that is five orders of magnitude short of the published "
@@ -485,7 +485,7 @@ def main():
             "have been comparable to it and were to be compared against a defaults run.",
             "Four of the sixteen configurations hold the repo's own values on their axis "
             "and are therefore identical to the defaults. They are kept as reference "
-            "points and flagged with is_repo_default_on_its_axis, but the sweep really "
+            "points and marked as such on the charts, but the sweep really "
             "moves four axes across thirteen distinct settings, not sixteen.",
             "Only four simulator settings are swept out of the 27 that sweep/simconfig.py "
             "lifts out of the code. That is a sample of the simulator, not a survey of it.",
