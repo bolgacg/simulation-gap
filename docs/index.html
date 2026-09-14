@@ -198,9 +198,10 @@ tr.on td{background:#eef2f7}
       <div><b>precision</b> The other half of the same picture: of everything the model claimed was
         a worm, the share that matched something a human marked. It depends on the confidence
         threshold the detector is run at, which here is the repository's own default of 0.5, so it is
-        a property of the model at that setting rather than of the model. And it is a lower bound:
-        the check at the bottom of this page cannot rule out that some worms went unlabelled, and an
-        unlabelled worm counts against precision unfairly.</div>
+        a property of the model at that setting rather than of the model. On this evaluation set it is
+        also a floor rather than a rate, because the hand labels turn out to sit in the middle of each
+        frame while detections are counted across all of it. The bottom of this page measures that and
+        says what it costs.</div>
       <div><b>image statistics</b> Numbers describing what a frame looks like, computed the same
         way on synthetic and real footage, using no labels.</div>
       <div><b>the gap</b> The distance between doing well on synthetic frames and doing well on
@@ -295,7 +296,7 @@ tr.on td{background:#eef2f7}
   <h3 style="margin-top:26px">Checked in your browser, just now</h3>
   <p class="small" id="selfcheck">Checking.</p>
 
-  <h3 style="margin-top:26px">Whether the scoring is allowed to report precision</h3>
+  <h3 style="margin-top:26px">How far the evaluation set can be trusted</h3>
   <p class="small" id="labelcheck">Not checked.</p>
   <p class="hint" id="labelcheckviz-cap"></p>
   <div class="viz" id="labelcheckviz"></div>

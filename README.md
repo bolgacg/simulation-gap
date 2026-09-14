@@ -65,14 +65,24 @@ density with an R squared of 0.974. **That rules out a fixed quota per clip and 
 more.** Someone marking half the worms in every clip produces a line through the origin too,
 with half the slope and a fit just as good, and no geometry in these files separates them.
 
-So a second test, for the way a human actually labels partially, which is to skip the hard
-ones. The hard case here is a worm crossing another worm, and in a field of n labelled worms
-there are n(n-1)/2 pairs that could cross, so marking every worm regardless of difficulty
-makes crossings grow as roughly the square of the count. Measured exponent 2.31 against 2.0.
-The tangled worms are in the labels.
+A second test, on how often labelled worms cross each other, was written to catch a labeller
+skipping the tangled ones. **It does not work, and the reason is worth keeping.** Marking each
+worm with constant probability p multiplies the crossings by p squared, which cancels out of
+the log-log slope entirely, so the statistic cannot see a constant share at all. It is also
+too thin on its own terms: exponent 2.31 with a 95 percent interval of 1.66 to 2.96 across
+seven usable density bins, an interval that contains the 2.0 it was meant to be distinguished
+from.
 
-A constant fraction still cannot be excluded, so **precision is reported as a lower bound**
-rather than as a false-alarm rate, and always with the confidence threshold it depends on.
+**Looking directly is what found something.** The labels are not spread over the crop. 97.3
+percent of every clicked point falls inside a central 160 pixel box, 39 percent of the 256
+pixel frame. Whoever labelled these worked in the middle. That mode passes both tests above,
+which is exactly why neither saw it.
+
+**So the precision of the published weights is badly understated here.** Detections are counted
+over the whole frame while labels exist in about two fifths of it, so a correct detection in
+the unlabelled majority is recorded as a false positive. Recall is unaffected, because it only
+counts labelled worms. Precision is reported as a floor, and the fix is to score detections
+inside the labelled region alone, which is a change to the scoring rather than a caveat.
 
 A third attempt was thrown out. It tried to find unlabelled worms directly by thresholding
 each frame at the intensity of its own labelled centrelines, and said only 23 percent of

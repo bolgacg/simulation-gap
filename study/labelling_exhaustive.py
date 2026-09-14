@@ -110,18 +110,22 @@ def length_coverage(labels):
 
 
 def crossing_scaling(labels):
-    """Does the labelling include the tangled worms, or only the easy ones?
+    """Crossings between labelled worms against the number of labelled worms.
 
-    Proportionality to density rules out a fixed quota per clip. It does not rule out a
-    fixed fraction: someone marking half the worms in every clip produces a line through
-    the origin too, with half the slope and the same fit. So a second test is needed for
-    the way a human actually labels partially, which is to skip the hard cases.
+    This was written to test whether tangled worms are skipped, and it does not work.
+    It is kept because the measurement is real and the reason it fails is worth stating.
 
-    The hard case here is a worm crossing another worm, which is the whole reason this
-    detector exists. In a field of n labelled worms there are n(n-1)/2 pairs that could
-    cross, so if every worm is marked regardless of difficulty the number of crossings
-    grows roughly as the square of the count. A labeller avoiding tangles would give a
-    flatter exponent, because the crossings are exactly what they skipped.
+    Two reasons it fails. First, by construction: if a labeller marks each worm with
+    constant probability p, the labels are p*N and the crossings among them are p^2 times
+    the true crossings, so p cancels out of the log-log slope entirely and the exponent is
+    unchanged. Independent thinning multiplies every k-point statistic by p^k and leaves
+    all scaling exponents alone, so this test has exactly zero power against a constant
+    fraction, not merely limited power. Second, empirically: the fit has seven usable bins,
+    two of which hold one and two crossing events, and its confidence interval contains the
+    quadratic it was meant to distinguish from.
+
+    The numbers are reported with that interval, and the page says the test settles
+    nothing rather than quoting the point estimate as a pass.
     """
     def segments_of(spline):
         xs, ys = spline["x"], spline["y"]
@@ -161,7 +165,15 @@ def crossing_scaling(labels):
             ys.append(math.log(cpc))
     if len(xs) < 3:
         return None
-    slope = float(np.polyfit(xs, ys, 1)[0])
+    n_pts = len(xs)
+    A = np.vstack([np.array(xs), np.ones(n_pts)]).T
+    beta = np.linalg.lstsq(A, np.array(ys), rcond=None)[0]
+    slope = float(beta[0])
+    resid = np.array(ys) - A @ beta
+    se = float(np.sqrt((resid ** 2).sum() / (n_pts - 2) * np.linalg.inv(A.T @ A)[0, 0])) if n_pts > 2 else None
+    # Student t for a 95 percent interval at n-2 degrees of freedom, for the small n here.
+    tcrit = {3: 12.706, 4: 4.303, 5: 3.182, 6: 2.776, 7: 2.571, 8: 2.447, 9: 2.365}.get(n_pts, 2.0)
+    ci = [round(slope - tcrit * se, 2), round(slope + tcrit * se, 2)] if se else None
     return {
         "what_it_measures": (
             "how the number of crossings between labelled worms grows with the number of "
@@ -171,8 +183,67 @@ def crossing_scaling(labels):
         ),
         "by_density": rows,
         "exponent": round(slope, 2),
+        "exponent_95_interval": ci,
+        "usable_bins": n_pts,
         "quadratic_would_be": 2.0,
-        "verdict_includes_tangles": bool(slope >= 1.7),
+        "settles_anything": bool(ci and (ci[0] > 2.0 or ci[1] < 2.0)),
+        "why_it_settles_nothing": (
+            "the interval contains the quadratic it was meant to distinguish from, and even if it "
+            "did not, independent thinning preserves the exponent exactly, so this statistic cannot "
+            "see a constant fraction at all"
+        ),
+    }
+
+
+def label_region(labels, size=256):
+    """Where in each crop the labels actually are.
+
+    This is the test that works, and it found something. Sub-region labelling, meaning
+    marking the middle of a crop and ignoring the edges, produces a line through the
+    origin like exhaustive labelling and produces quadratic crossing growth like
+    exhaustive labelling, so neither earlier test can see it. It is visible directly.
+
+    It matters more than the others because of what it does to precision: detections are
+    counted across the whole frame while labels exist only where someone drew them, so
+    every correct detection outside the labelled region is recorded as a false positive.
+    """
+    xs, ys = [], []
+    for rec in labels.values():
+        for spline in rec["splines"]:
+            if len(spline["x"]) < 2:
+                continue
+            xs.extend(spline["x"])
+            ys.extend(spline["y"])
+    if not xs:
+        return None
+    xs, ys = np.array(xs), np.array(ys)
+    boxes = []
+    for half in (56, 64, 72, 80):
+        lo, hi = size / 2 - half, size / 2 + half
+        inside = float(((xs >= lo) & (xs <= hi) & (ys >= lo) & (ys <= hi)).mean())
+        boxes.append({
+            "box_px": [round(lo), round(hi)],
+            "side_px": 2 * half,
+            "area_share_pct": round(100.0 * (2 * half / size) ** 2, 1),
+            "points_inside_pct": round(100.0 * inside, 1),
+        })
+    chosen = next((b for b in boxes if b["points_inside_pct"] >= 97.0), boxes[-1])
+    return {
+        "what_it_measures": (
+            "the share of hand-clicked points falling inside a central box of each crop. "
+            "Labelling confined to the middle passes both of the other tests and is invisible "
+            "to them."
+        ),
+        "frame_px": size,
+        "boxes": boxes,
+        "smallest_box_holding_97_pct": chosen,
+        "consequence_for_precision": (
+            "detections are counted over the whole frame while labels exist only in part of it, "
+            "so a correct detection outside the labelled region is scored as a false positive. "
+            "Precision over the whole frame is therefore an underestimate by roughly the ratio "
+            "of frame area to labelled area, and the only fix is to score detections inside the "
+            "labelled region alone."
+        ),
     }
 
 
@@ -235,22 +306,34 @@ def main():
     if crossings:
         result["crossing_scaling"] = crossings
 
+    region = label_region(labels)
+    if region:
+        result["label_region"] = region
+
     # What the two tests together do and do not establish. Stated here rather than on
     # the page, so the page quotes it instead of paraphrasing it.
     result["what_is_ruled_out"] = [
         "a fixed number of labels per clip, because labels rise in proportion to density",
-        ("skipping the tangled worms, because crossings between labelled worms grow close to "
-         "the square of the count, which is what marking every worm in a dense field produces")
-        if crossings and crossings["verdict_includes_tangles"] else
-        "nothing about tangled worms: the crossing test did not run or did not support it",
     ]
-    result["what_is_not_ruled_out"] = (
-        "labelling a constant fraction of the worms in every clip. That produces a line through "
-        "the origin as well, with a smaller slope and an equally good fit, and no geometry in "
-        "these files can distinguish it. The consequence is that the measured precision is a "
-        "lower bound: if only a fraction were labelled, some unmatched detections are real worms "
-        "nobody clicked, and the true precision is higher than the number reported."
-    )
+    result["what_is_not_ruled_out"] = [
+        ("labelling a constant fraction of the worms, chosen independently of context. That "
+         "produces a line through the origin with a smaller slope and an equally good fit, and "
+         "it also leaves every scaling exponent unchanged, so no pair statistic can see it "
+         "either. It is not ruled out and cannot be, from these files."),
+        ("skipping the tangled worms. The crossing test written for this does not settle it: "
+         "its interval contains the quadratic it was meant to distinguish from."),
+    ]
+    if region:
+        result["what_was_found_instead"] = (
+            "the labels are not spread over the crop. " +
+            str(region["smallest_box_holding_97_pct"]["points_inside_pct"]) +
+            " percent of every clicked point falls inside a central " +
+            str(region["smallest_box_holding_97_pct"]["side_px"]) + " pixel box, which is " +
+            str(region["smallest_box_holding_97_pct"]["area_share_pct"]) +
+            " percent of the frame. Detections are counted over the whole frame, so precision "
+            "measured this way counts correct detections in the unlabelled majority as false "
+            "positives."
+        )
 
     cov = length_coverage(labels)
     if cov:

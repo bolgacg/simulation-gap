@@ -402,8 +402,9 @@
         (D.labelling_check || {}).verdict_exhaustive)
         ? '<div><div class="k">Its precision</div><div class="n">&ge; ' + num(D.baseline_per_clip.stated.precision) +
           '</div><div class="s">' + n(D.baseline_per_clip.stated.predictions) + ' detections against ' +
-          n(D.baseline_per_clip.stated.labels) + ' labelled worms, at the repository\'s own confidence ' +
-          'threshold of 0.5. A lower bound, because unlabelled worms count against it</div></div>'
+          n(D.baseline_per_clip.stated.labels) + ' labelled worms at the repository\'s own threshold of 0.5. ' +
+          'A floor, badly understated: the labels sit in the middle of each frame and detections are ' +
+          'counted across all of it. The coda explains</div></div>'
         : '') +
       '<div><div class="k">Metric</div><div class="n" style="font-size:15px">' + esc(m.name || 'n/a') +
       '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
@@ -634,7 +635,7 @@
       host.innerHTML = '<b>Matched.</b> Adding up the ' + Object.keys(bp.sections).length +
         ' clips here gives ' + found + ' of ' + lab + ' labelled worms found, a recall of ' +
         num(recall) + ', and ' + claimed + ' of ' + pred + ' detections matching something, a precision of ' +
-        num(precision) + ', which is a lower bound for the reason the next section gives. Both are what ' +
+        num(precision) + ', which is a floor rather than a rate for the reason the next section gives. Both are what ' +
         'the study reported. Note that ' + found + ' labels were matched by ' +
         claimed + ' detections: ' + (found - claimed) + ' of them sat within the cutoff of a detection that ' +
         'also matched another worm, which is the overlapping case this detector was built for, so precision ' +
@@ -665,30 +666,44 @@
     var keys = Object.keys(by).sort(function (a, b) { return Number(a) - Number(b); });
     if (!keys.length) { text.textContent = 'Not checked.'; return; }
     var first = keys[0], last = keys[keys.length - 1];
-    var cs = lc.crossing_scaling;
+    var cs = lc.crossing_scaling, reg = lc.label_region;
+    var parts = [];
+    parts.push('The clips come from videos at stated worm densities from ' + Number(first) + ' to ' +
+      Number(last) + ' times, and labels per clip rise in proportion to that density on a line through ' +
+      'the origin: ' + by[first].mean_labels + ' a clip at the lowest rising to ' + by[last].mean_labels +
+      ' at the highest, fitted at ' + lc.slope_labels_per_unit_density + ' per unit density with an R ' +
+      'squared of ' + lc.r_squared_through_origin + '. <b>That rules out a fixed quota per clip and ' +
+      'nothing else.</b> Someone marking a constant share of the worms produces the same line with a ' +
+      'smaller slope.');
+    if (cs) {
+      parts.push('A second test, on how often labelled worms cross each other, was written to catch a ' +
+        'labeller skipping the tangled ones. <b>It does not work and the page will not lean on it.</b> ' +
+        'Marking each worm with a constant probability multiplies the crossings by that probability ' +
+        'squared, which cancels out of the slope entirely, so the statistic cannot see a constant share ' +
+        'at all. The measurement is also too thin to settle anything on its own terms: the exponent is ' +
+        cs.exponent + ' with a 95 percent interval of ' + cs.exponent_95_interval[0] + ' to ' +
+        cs.exponent_95_interval[1] + ', across ' + cs.usable_bins + ' usable density bins, and that ' +
+        'interval contains the ' + cs.quadratic_would_be + ' it was meant to be distinguished from.');
+    }
+    if (reg) {
+      var bx = reg.smallest_box_holding_97_pct;
+      parts.push('<b>Looking directly is what found something.</b> The labels are not spread across the ' +
+        'crop. ' + bx.points_inside_pct + ' percent of every clicked point falls inside a central ' +
+        bx.side_px + ' pixel box, which is ' + bx.area_share_pct + ' percent of the ' + reg.frame_px +
+        ' pixel frame. Whoever labelled these worked in the middle of each crop. That mode passes both ' +
+        'tests above, which is why neither saw it.');
+      parts.push('<b>So the precision quoted in act one is badly understated, and not by a little.</b> ' +
+        'Detections are counted over the whole frame while labels exist in about ' + bx.area_share_pct +
+        ' percent of it, so a correct detection in the unlabelled majority is recorded as a false ' +
+        'positive. The number is a floor with a large and unmeasured gap beneath the truth. Fixing it ' +
+        'means scoring detections inside the labelled region alone, which is a change to the scoring ' +
+        'code rather than a caveat, and until that is done this page reports recall and distance as ' +
+        'measurements and precision as a floor.');
+    }
     text.innerHTML = lc.verdict_exhaustive
-      ? 'Partly, and the part that fails is worth stating. The clips come from videos at stated ' +
-        'worm densities from ' + Number(first) + ' to ' + Number(last) + ' times. If a human marked ' +
-        'every worm in a crop, labels per crop rise in proportion to that density on a line through ' +
-        'the origin, because no worms means no labels. Measured: ' + by[first].mean_labels +
-        ' labels a clip at the lowest density rising to ' + by[last].mean_labels + ' at the highest, ' +
-        'a fit of ' + lc.slope_labels_per_unit_density + ' labels per unit density with an R squared of ' +
-        lc.r_squared_through_origin + ' through the origin. <b>That rules out a fixed quota per clip ' +
-        'and nothing more.</b> Someone marking half the worms in every clip would also produce a line ' +
-        'through the origin, with half the slope and a fit just as good, and no geometry in these ' +
-        'files separates the two.' +
-        (cs ? ' A second test rules out the way a human actually labels partially, which is to skip ' +
-          'the hard ones. The hard case here is a worm crossing another worm, and in a field of n ' +
-          'labelled worms there are n(n-1)/2 pairs that could cross, so marking every worm regardless ' +
-          'of difficulty makes crossings grow as roughly the square of the count. Measured exponent: ' +
-          cs.exponent + ' against ' + cs.quadratic_would_be + ' for the quadratic. The tangled worms ' +
-          'are in the labels.' : '') +
-        ' <b>So precision below is a lower bound, not a false-alarm rate.</b> If some constant ' +
-        'fraction went unlabelled, part of what is counted as a false positive is a real worm nobody ' +
-        'clicked, and the true precision is higher than the number reported.'
-      : 'No. Labels per clip do not track the stated worm density, so an unmatched detection may ' +
-        'well be a real worm nobody clicked. Precision is therefore not reported anywhere above, ' +
-        'and the page shows recall and distance only.';
+      ? parts.join(' ')
+      : 'Labels per clip do not track the stated worm density, so an unmatched detection may well be ' +
+        'a real worm nobody clicked. Precision is not reported as a rate anywhere on this page.';
 
     var host = $('#labelcheckviz'); if (!host) return;
     var narrow = isNarrow();

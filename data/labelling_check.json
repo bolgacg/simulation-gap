@@ -97,14 +97,75 @@
    }
   },
   "exponent": 2.31,
+  "exponent_95_interval": [
+   1.66,
+   2.96
+  ],
+  "usable_bins": 7,
   "quadratic_would_be": 2.0,
-  "verdict_includes_tangles": true
+  "settles_anything": false,
+  "why_it_settles_nothing": "the interval contains the quadratic it was meant to distinguish from, and even if it did not, independent thinning preserves the exponent exactly, so this statistic cannot see a constant fraction at all"
+ },
+ "label_region": {
+  "what_it_measures": "the share of hand-clicked points falling inside a central box of each crop. Labelling confined to the middle passes both of the other tests and is invisible to them.",
+  "frame_px": 256,
+  "boxes": [
+   {
+    "box_px": [
+     72,
+     184
+    ],
+    "side_px": 112,
+    "area_share_pct": 19.1,
+    "points_inside_pct": 74.7
+   },
+   {
+    "box_px": [
+     64,
+     192
+    ],
+    "side_px": 128,
+    "area_share_pct": 25.0,
+    "points_inside_pct": 86.1
+   },
+   {
+    "box_px": [
+     56,
+     200
+    ],
+    "side_px": 144,
+    "area_share_pct": 31.6,
+    "points_inside_pct": 93.7
+   },
+   {
+    "box_px": [
+     48,
+     208
+    ],
+    "side_px": 160,
+    "area_share_pct": 39.1,
+    "points_inside_pct": 97.3
+   }
+  ],
+  "smallest_box_holding_97_pct": {
+   "box_px": [
+    48,
+    208
+   ],
+   "side_px": 160,
+   "area_share_pct": 39.1,
+   "points_inside_pct": 97.3
+  },
+  "consequence_for_precision": "detections are counted over the whole frame while labels exist only in part of it, so a correct detection outside the labelled region is scored as a false positive. Precision over the whole frame is therefore an underestimate by roughly the ratio of frame area to labelled area, and the only fix is to score detections inside the labelled region alone."
  },
  "what_is_ruled_out": [
-  "a fixed number of labels per clip, because labels rise in proportion to density",
-  "skipping the tangled worms, because crossings between labelled worms grow close to the square of the count, which is what marking every worm in a dense field produces"
+  "a fixed number of labels per clip, because labels rise in proportion to density"
  ],
- "what_is_not_ruled_out": "labelling a constant fraction of the worms in every clip. That produces a line through the origin as well, with a smaller slope and an equally good fit, and no geometry in these files can distinguish it. The consequence is that the measured precision is a lower bound: if only a fraction were labelled, some unmatched detections are real worms nobody clicked, and the true precision is higher than the number reported.",
+ "what_is_not_ruled_out": [
+  "labelling a constant fraction of the worms, chosen independently of context. That produces a line through the origin with a smaller slope and an equally good fit, and it also leaves every scaling exponent unchanged, so no pair statistic can see it either. It is not ruled out and cannot be, from these files.",
+  "skipping the tangled worms. The crossing test written for this does not settle it: its interval contains the quadratic it was meant to distinguish from."
+ ],
+ "what_was_found_instead": "the labels are not spread over the crop. 97.3 percent of every clicked point falls inside a central 160 pixel box, which is 39.1 percent of the frame. Detections are counted over the whole frame, so precision measured this way counts correct detections in the unlabelled majority as false positives.",
  "simulator_length_coverage": {
   "what_it_measures": "the share of hand-drawn real worms whose length falls inside the range the simulator draws from. A worm outside it is one the model was never shown.",
   "simulator_length_range_px": [
