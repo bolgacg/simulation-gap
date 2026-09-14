@@ -417,10 +417,19 @@
           ? 'Retraining with the authors\' own settings at the shorter schedule used here reaches ' + num(dr.real_score) +
             ', and that offset, not the published number, is what every swept configuration should be compared against.'
           : '');
-    $('#hardwaretext').textContent = hw.where
-      ? 'Every model was trained on ' + hw.where + ', a ' + (hw.gpu || 'single GPU') + ', through ' +
-        (hw.backend || 'the repository\'s own stack') + ', at ' +
-        (hw.one_run_seconds != null ? Math.round(hw.one_run_seconds / 60) + ' minutes a run' : 'a reduced schedule') + '.'
+    $('#hardwaretext').innerHTML = hw.where
+      ? 'Every model was trained on ' + esc(hw.where) + ', a ' + esc(hw.gpu || 'single GPU') + ', through ' +
+        esc(hw.backend || 'the repository\'s own stack') + ', at ' +
+        (hw.one_run_seconds != null ? Math.round(hw.one_run_seconds / 60) + ' minutes a run' : 'a reduced schedule') + '. ' +
+        // Worth stating for anyone planning the same thing on one card: the fixed cost of
+        // starting a run is large, and it is compilation rather than the training itself.
+        ((hw.startup_seconds != null && hw.seconds_per_step != null)
+          ? 'Starting a run costs about ' + Math.round(hw.startup_seconds) + ' seconds before any ' +
+            'training happens, almost all of it compilation, against ' + num(hw.seconds_per_step, 2) +
+            ' seconds a step afterwards. On a card like this one the fixed cost is what decides how ' +
+            'a sweep should be shaped: many short runs waste most of their time compiling, and each ' +
+            'additional distinct worm count is another shape to compile.'
+          : '')
       : '';
     var lims = D.limits || [];
     $('#lim1').textContent = lims[0] || 'One setting is moved at a time, so nothing here says what happens when two are wrong together, which is the usual case.';

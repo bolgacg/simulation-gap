@@ -52,6 +52,8 @@ OPTIONAL = {
     "defaults_run.learning_curve": "act one will show no learning curve, so nothing on the page says whether the schedule was long enough to learn",
     "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
+    "hardware.startup_seconds": "the method section cannot say how much of a run is compilation, which is the fact that decides how a sweep should be shaped on one card",
+    "hardware.seconds_per_step": "same as above; both are needed together",
 }
 
 # Not in results.json. build_page_data.py folds these in from their own files, so the
