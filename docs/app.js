@@ -153,7 +153,12 @@
     var vals = rows.map(function (r) { return r.axis_value; });
     var scores = rows.map(function (r) { return r.real_score; });
     var base = D.defaults_run && D.defaults_run.real_score != null ? D.defaults_run.real_score : null;
-    var all = scores.concat(base != null ? [base] : []);
+    // One y range for every setting. Rescaling per chip drew four settings at the same
+    // visual amplitude while the verdict said they differ by a factor of two, so the
+    // chart contradicted the sentence under it. The range spans every scored run.
+    var allScored = (D.configs || []).filter(function (c) { return c.real_score != null; })
+      .map(function (c) { return c.real_score; });
+    var all = allScored.concat(base != null ? [base] : []);
     var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
     if (hi - lo < 1e-9) { hi = lo + 1; }
     lo -= (hi - lo) * 0.15; hi += (hi - lo) * 0.12;
@@ -211,26 +216,32 @@
       var a = axes().filter(function (x) { return x.key === k; })[0];
       return (a && a.label ? a.label : k).toLowerCase();
     };
-    $('#v2').innerHTML = ranked.length > 1
-      ? (function () {
-          // The headline cannot assert that settings differ while the sentence after it
-          // says nothing clears the noise floor. So the floor decides the headline too.
-          var nf = noiseFloor();
-          var clears = nf ? ranked[0].spread > nf.spread * 2 : null;
-          var head = clears === false
-            ? '<b>No setting here is shown to matter more than another.</b> '
-            : (clears === true ? '<b>The settings do not matter equally.</b> '
-                               : '<b>The settings appear to move the score by different amounts.</b> ');
-          return head + 'Moving ' + lbl(ranked[0].k) + ' across its range changes the real score by ' +
-            num(ranked[0].spread, 3) + ', while moving ' + lbl(ranked[ranked.length - 1].k) + ' changes it by ' +
-            num(ranked[ranked.length - 1].spread, 3) + '. ' +
-            (tooThin ? tooThin + (tooThin === 1 ? ' setting is' : ' settings are') +
-              ' left out of that comparison, because only one run of ' +
-              (tooThin === 1 ? 'it' : 'each') + ' finished and a single point has no range to move across. ' : '') +
-            noiseClause(ranked);
-        })()
-      : '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' + num(spread, 3) + '.</b> ' +
-        noiseClause([{ k: state.axis, spread: spread }]);
+    // The verdict has to change when the reader clicks a chip, or the control looks
+    // broken. It leads with the setting they selected, then places it among the others.
+    var here = ranked.filter(function (r) { return r.k === state.axis; })[0];
+    var place = here ? ranked.indexOf(here) + 1 : null;
+    var lead = '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' +
+      num(spread, 3) + '.</b> ';
+    if (place && ranked.length > 1) {
+      lead += 'That is the ' + (place === 1 ? 'largest' : (place === ranked.length ? 'smallest' : 'number ' + place)) +
+        ' of the ' + ranked.length + ' settings measured across a range here' +
+        (place === 1 ? '.' : ', against ' + num(ranked[0].spread, 3) + ' for ' + lbl(ranked[0].k) + '.') + ' ';
+    }
+    if (ranked.length > 1) {
+      var nf0 = noiseFloor();
+      var clears = nf0 ? ranked[0].spread > nf0.spread * 2 : null;
+      lead += (clears === false
+        ? '<b>No setting here is shown to matter more than another.</b> '
+        : (clears === true ? '<b>The settings do not matter equally.</b> '
+                           : '<b>The settings appear to move the score by different amounts.</b> ')) +
+        'The largest effect is ' + lbl(ranked[0].k) + ' at ' + num(ranked[0].spread, 3) +
+        ' and the smallest is ' + lbl(ranked[ranked.length - 1].k) + ' at ' +
+        num(ranked[ranked.length - 1].spread, 3) + '. ' +
+        (tooThin ? tooThin + (tooThin === 1 ? ' setting is' : ' settings are') +
+          ' left out of that comparison, because only one run of ' +
+          (tooThin === 1 ? 'it' : 'each') + ' finished and a single point has no range to move across. ' : '');
+    }
+    $('#v2').innerHTML = lead + noiseClause(ranked.length ? ranked : [{ k: state.axis, spread: spread }]);
   }
 
   // A difference between two configurations means nothing until you know how much the
@@ -265,6 +276,43 @@
         'that a longer schedule or repeated runs would be needed before advising anyone where to tune.';
     }
     return clause;
+  }
+
+  // Spearman, computed here rather than taken from the results file, because the sign
+  // convention is where this goes wrong. The x axis is distance from real, where smaller
+  // is more realistic, and the y axis is score, where larger is better. So the
+  // fellowship's idea holding means low distance goes with high score, which is a
+  // NEGATIVE correlation between the two raw quantities. Reporting that raw number as
+  // "agreement" would call a success a failure, which is what this page did.
+  function rankAgreement(rows) {
+    var n = rows.length;
+    if (n < 3) return null;
+    function ranks(vals) {
+      var idx = vals.map(function (v, i) { return [v, i]; }).sort(function (a, b) { return a[0] - b[0]; });
+      var r = new Array(vals.length);
+      for (var i = 0; i < idx.length;) {
+        var j = i;
+        while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+        var avg = (i + j) / 2 + 1;
+        for (var k = i; k <= j; k++) r[idx[k][1]] = avg;
+        i = j + 1;
+      }
+      return r;
+    }
+    var a = ranks(rows.map(function (r) { return r.stat_distance_to_real; }));
+    var b = ranks(rows.map(function (r) { return r.real_score; }));
+    var ma = a.reduce(function (s, v) { return s + v; }, 0) / n;
+    var mb = b.reduce(function (s, v) { return s + v; }, 0) / n;
+    var num = 0, da = 0, db = 0;
+    for (var i = 0; i < n; i++) {
+      num += (a[i] - ma) * (b[i] - mb);
+      da += (a[i] - ma) * (a[i] - ma);
+      db += (b[i] - mb) * (b[i] - mb);
+    }
+    if (da === 0 || db === 0) return null;
+    var raw = num / Math.sqrt(da * db);
+    // Flip so that positive means the idea works: realistic-looking settings score well.
+    return { agreement: -raw, raw_distance_vs_score: raw, n: n };
   }
 
   function drawThesis() {
@@ -310,42 +358,58 @@
       'font-size': 11.5, fill: '#5b6470' }, narrow ? 'Statistical distance to real' :
       'Distance between synthetic and real image statistics, no labels used'));
     host.innerHTML = ''; host.appendChild(s);
-    $('#thesislegend').innerHTML = '<span class="hint">If the fellowship\'s idea holds, points fall from top left to bottom right: the settings that look most like the real thing are the settings that work.</span>';
+    $('#thesislegend').innerHTML = '<span class="hint">Left is more like real footage, up is a better ' +
+      'score. If the idea holds, the points run from the top left down to the bottom right, because ' +
+      'the settings that look most like the real thing are the settings that work. Rank agreement is ' +
+      'written so that <b>positive means exactly that</b>: it is the correlation between the two ' +
+      'orderings, both taken best first, so plus one is the idea working perfectly and minus one is ' +
+      'it working backwards.</span>';
 
     var t = D.thesis_test || {};
+    // The page computes the agreement itself so the sign convention lives where it is
+    // used. A value from the results file is only trusted if it declares its own sign.
+    var ra = rankAgreement(rows);
+    var agree = ra ? ra.agreement : null;
+    var supports = agree == null ? null : agree > 0.3;
+    // Best by each criterion, computed from the same rows as the agreement. Taking these
+    // from the results file let the page say the rankings agreed perfectly and then name
+    // two different winners.
+    var bestStats = rows.slice().sort(function (a, b) { return a.stat_distance_to_real - b.stat_distance_to_real; })[0];
+    var bestReal = rows.slice().sort(function (a, b) { return b.real_score - a.real_score; })[0];
+    var nameStats = bestStats ? bestStats.name : null, nameReal = bestReal ? bestReal.name : null;
     $('#thesisstat').innerHTML =
       '<div><div class="k">Configurations</div><div class="n">' + (t.n_configs != null ? t.n_configs : rows.length) +
       '</div><div class="s">each a model trained from scratch</div></div>' +
-      '<div><div class="k">Rank agreement</div><div class="n">' + (t.spearman != null ? num(t.spearman, 2) : 'n/a') +
+      '<div><div class="k">Rank agreement</div><div class="n">' + (agree != null ? num(agree, 2) : 'n/a') +
       '</div><div class="s">between the two orderings</div></div>' +
-      '<div><div class="k">Best without labels</div><div class="n" style="font-size:15px">' + esc(t.best_by_stats || 'n/a') +
+      '<div><div class="k">Best without labels</div><div class="n" style="font-size:15px">' + esc(nameStats || 'n/a') +
       '</div><div class="s">chosen by statistics alone</div></div>' +
-      '<div><div class="k">Best with labels</div><div class="n" style="font-size:15px">' + esc(t.best_by_real || 'n/a') +
+      '<div><div class="k">Best with labels</div><div class="n" style="font-size:15px">' + esc(nameReal || 'n/a') +
       '</div><div class="s">the answer</div></div>';
 
-    if (t.spearman == null) {
+    if (agree == null) {
       // A partial sweep is a likely way for this to end, so say what is missing and
       // what the finished part does show, rather than printing the word "nothing"
       // twice and leaving a reader to work out whether that is a result.
-      var both = t.best_by_stats && t.best_by_real;
+      var both = nameStats && nameReal;
       $('#v3').innerHTML = '<b>Too few configurations to put a number on it.</b> ' +
-        (t.n_configs || rows.length) + ' finished ' +
+        rows.length + ' finished ' +
         ((t.n_configs || rows.length) === 1 ? 'configuration cannot' : 'configurations cannot') +
         ' support a rank correlation worth quoting, so none is quoted. ' +
         (both
-          ? 'Of what did finish, the statistics pick ' + esc(t.best_by_stats) + ' and the real scores pick ' +
-            esc(t.best_by_real) + ', which is ' + (t.best_by_stats === t.best_by_real ? 'agreement' : 'disagreement') +
+          ? 'Of what did finish, the statistics pick ' + esc(nameStats) + ' and the real scores pick ' +
+            esc(nameReal) + ', which is ' + (nameStats === nameReal ? 'agreement' : 'disagreement') +
             ' on a sample far too small to lean on.'
           : 'Until enough runs finish, this act reports nothing, which is the correct thing for it to report.');
-    } else if (t.verdict_supports_thesis) {
+    } else if (supports) {
       $('#v3').innerHTML = '<b>Unlabelled statistics do pick settings that work, on this system.</b> ' +
-        'The two rankings agree to ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
-        ' configurations, and the setting chosen without labels, ' + esc(t.best_by_stats) +
-        ', is ' + (t.best_by_stats === t.best_by_real ? 'the same one the labels chose' : 'not the one the labels chose, ' + esc(t.best_by_real)) +
+        'The two rankings agree to ' + num(agree, 2) + ' across ' + rows.length +
+        ' configurations, and the setting chosen without labels, ' + esc(nameStats) +
+        ', is ' + (nameStats === nameReal ? 'the same one the labels chose' : 'not the one the labels chose, ' + esc(nameReal)) +
         '. That is one species and one microscope, so it is evidence that the loop is worth building rather than proof it generalises.';
     } else {
       $('#v3').innerHTML = '<b>Unlabelled statistics do not pick the settings that work here.</b> ' +
-        'The two rankings agree to only ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
+        'The two rankings agree to only ' + num(agree, 2) + ' across ' + rows.length +
         ' configurations. Matching what a frame looks like is not the same as matching what a detector needs, and on this system the difference is large enough to matter. ' +
         'That is a finding rather than a failure: it says the tuning signal has to come from somewhere other than plain image statistics.' +
         // A weak correlation is only evidence against the thesis if the thing it is
@@ -803,9 +867,17 @@
         'Run study/build_page_data.py to write docs/data.js.');
       return;
     }
-    if (D.generated_at === 'FIXTURE') {
-      halt('This page is showing fixture data used to check the layout, not a result. ' +
-        'Nothing here is measured. Run study/build_page_data.py against the real sweep output.');
+    // The guard used to test generated_at for the literal string FIXTURE, which meant
+    // fixture content passed silently: a legend reading "fixture" and two limits reading
+    // "fixture limit one" and "fixture limit two" rendered as though measured. It now
+    // looks for the word anywhere in the data, which is the thing that must never ship.
+    var raw = '';
+    try { raw = JSON.stringify(D); } catch (e) { raw = ''; }
+    var mark = raw.match(/fixture|placeholder|lorem ipsum|TODO/i);
+    if (mark) {
+      halt('This page is showing fixture data used to check the layout, not a result. The word "' +
+        mark[0] + '" appears in the study output, so nothing here is measured. Run ' +
+        'study/build_page_data.py against the real sweep output.');
       return;
     }
     redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
