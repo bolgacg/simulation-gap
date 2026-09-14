@@ -41,7 +41,7 @@ says so where it uses it.
    compared against the retrained figure, because comparing against weights trained three
    hundred thousand steps on eight devices would measure the schedule rather than the
    simulator.
-2. **One knob at a time.** Sixteen configurations across four axes: worm length, body
+2. **One setting at a time.** Sixteen configurations across four axes: worm length, body
    radius, drag anisotropy and sensor noise. Each is a full retrain and a full scoring
    run, changing one thing.
 3. **Can you choose without labels?** Rank the configurations by how closely their
