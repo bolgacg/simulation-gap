@@ -318,6 +318,14 @@
       '</div><div class="s">same settings, shorter training</div></div>' +
       '<div><div class="k">Real clips</div><div class="n">' + (rd.clips != null ? rd.clips : 'n/a') +
       '</div><div class="s">' + esc(rd.licence || '') + '</div></div>' +
+      // Precision is only shown because the labelling was checked and found exhaustive.
+      // On a partially labelled set it would be a number about the labelling effort.
+      ((D.baseline_per_clip && D.baseline_per_clip.stated && D.baseline_per_clip.stated.precision != null &&
+        (D.labelling_check || {}).verdict_exhaustive)
+        ? '<div><div class="k">Its precision</div><div class="n">' + num(D.baseline_per_clip.stated.precision) +
+          '</div><div class="s">' + n(D.baseline_per_clip.stated.predictions) + ' detections against ' +
+          n(D.baseline_per_clip.stated.labels) + ' labelled worms, at the repository\'s own default threshold</div></div>'
+        : '') +
       '<div><div class="k">Metric</div><div class="n" style="font-size:15px">' + esc(m.name || 'n/a') +
       '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
     $('#v1').innerHTML = b.real_score == null
