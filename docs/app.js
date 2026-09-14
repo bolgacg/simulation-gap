@@ -399,6 +399,8 @@
     caption('#statrankviz', 'Distance from real footage, no labels and no training used. Lower is closer. ' +
       'Amber rows hold the repository\'s own value on their axis.');
 
+    drawNoiseFloor();
+
     // The radius warning and the other axes are rendered into two blocks with the
     // granulometry chart between them, because the chart is evidence for the first and
     // would read as evidence for the last if it sat under the whole thing.
@@ -412,18 +414,103 @@
           'the cheapest place there is to find it.'
         : '');
     }
+    // Each axis is rendered in the words the study output uses for it, including the
+    // two it withdraws. A retraction written on the page and a retraction written in
+    // the record can drift apart, and only one of them is the study.
     var v2 = $('#vstats2');
     if (v2) {
-      v2.innerHTML =
-        (f.noise_axis ? '<b>One thing that holds under every subset of the statistics.</b> ' +
-          cap1(esc(f.noise_axis)) : '') +
-        (f.ranking_depends_on_statistic_choice
-          ? ' <br><br><b>One that does not.</b> ' + cap1(esc(f.ranking_depends_on_statistic_choice)) : '') +
-        (f.length_axis ? ' ' + cap1(esc(f.length_axis)) : '') +
-        (f.motion_axis ? ' <br><br><b>And one axis these statistics cannot see at all.</b> ' +
-          cap1(esc(f.motion_axis)) : '');
+      var blocks = [];
+      var block = function (head, body) {
+        if (body) blocks.push('<b>' + head + '</b> ' + cap1(esc(body)));
+      };
+      block('Sensor noise keeps its ordering.', f.noise_axis_CLEARS_the_floor);
+      block('Body radius keeps its ordering.', f.radius_axis_CLEARS_the_floor);
+      block('Worm length does not, and a finding of this page goes with it.',
+            f.length_axis_DOES_NOT_clear_the_floor);
+      block('The axis that matters most does not either.',
+            f.motion_axis_DOES_NOT_clear_the_floor);
+      block('The statistic set moves the ordering too.', f.ranking_depends_on_statistic_choice);
+      v2.innerHTML = blocks.join('<br><br>');
     }
     drawGranulometry();
+  }
+
+  // The claim this page makes about one axis, checked against the redrawn sweeps.
+  // Small counts read better as words in a sentence than as digits.
+  function word(k) {
+    var w = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+    return (k >= 0 && k < w.length) ? w[k] : String(k);
+  }
+
+  function axisClaim(key) {
+    var nf = D.stats_noise_floor;
+    if (!nf || !nf.axis_claims) return null;
+    return nf.axis_claims.filter(function (c) { return c.axis === key; })[0] || null;
+  }
+
+  function axisLabel(key) {
+    var a = (D.axes || []).filter(function (x) { return x.key === key; })[0];
+    return a ? a.label.toLowerCase() : key.replace(/_/g, ' ');
+  }
+
+  // Act three reads its findings off an ordering, and part of every gap in that
+  // ordering is the draw of synthetic clips rather than the setting. Running the
+  // whole sweep again on two more seeds is the only thing that separates them,
+  // and it costs three minutes a seed because nothing here is trained.
+  function drawNoiseFloor() {
+    var nf = D.stats_noise_floor;
+    var text = $('#noisefloortext'), tbl = $('#noisefloortable'),
+        wrap = $('#noisefloorwrap'), note = $('#noisefloornote');
+    if (!text || !tbl) return;
+    if (!nf || !nf.axis_claims || !nf.axis_claims.length) {
+      text.innerHTML = '<b>The statistics were computed once.</b> Every gap below carries an ' +
+        'unknown amount of the synthetic draw in it, and nothing here can say how much, so no ' +
+        'ordering on this chart should be read as a finding.';
+      tbl.innerHTML = '';
+      if (wrap) wrap.style.display = 'none';
+      if (note) note.textContent = '';
+      return;
+    }
+    if (wrap) wrap.style.display = '';
+    var seeds = nf.seeds || [];
+    var lost = (nf.does_not_survive || []).length, kept = (nf.survives || []).length;
+    var shift = nf.common_shift_between_draws;
+    text.innerHTML = 'Those distances come from one pool of synthetic clips, so part of every gap is ' +
+      'which worms happened to be drawn. The whole sweep was run ' +
+      (seeds.length > 1 ? word(seeds.length) : 'several') + ' times with the worms redrawn and nothing ' +
+      'else changed. ' +
+      (shift ? 'The draw moves the whole field together, by ' + num(shift.range, 2) +
+        ' in the mean distance across all sixteen configurations, so settings are compared inside a ' +
+        'draw and the differences averaged afterwards rather than compared across draws. ' : '') +
+      (lost
+        ? 'On that comparison ' + word(kept) + ' of the ' + word(kept + lost) + ' axes keep their ' +
+          'ordering every time and ' + word(lost) + ' do not, and one of the findings this page ' +
+          'reported from the first draw does not survive the other two.'
+        : 'Every axis keeps its ordering.');
+
+    var head = '<thead><tr><th>Simulator setting</th><th>Repository value</th>' +
+      '<th>Where it sits on its axis, by draw</th><th>Ordering</th></tr></thead>';
+    var body = nf.axis_claims.map(function (c) {
+      var pos = seeds.map(function (s) { return c.repo_position_on_axis_by_seed[String(s)]; });
+      var ok = c.survives_reseeding;
+      return '<tr><td class="l">' + esc(axisLabel(c.axis)) + '</td>' +
+        '<td class="num">' + n(c.repo_value) + '</td>' +
+        '<td class="num">' + pos.join(', ') + ' of ' + c.settings_tested_on_axis + '</td>' +
+        '<td class="num ' + (ok ? 'pos' : 'neg') + '">' + (ok ? 'holds' : 'moves') + '</td></tr>';
+    }).join('');
+    tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
+
+    if (note) {
+      var dup = nf.identical_configurations;
+      note.textContent = 'Position means where the repository\'s own value ranks among the settings ' +
+        'tested on that axis, once per draw. An axis marked holds keeps that position in every draw, ' +
+        'every setting on it stays on the same side of the repository\'s value every time, and at ' +
+        'least one of those differences is more than three times its own scatter across draws.' +
+        (dup && dup.configs ? ' The floor is measurable because ' + word(dup.configs.length) +
+          ' of the configurations hold the repository value on their own axis, so they are the same ' +
+          'simulator under different names: within one draw they agree to the digit, and across ' +
+          'draws they move together.' : '');
+    }
   }
 
   // The size curve behind the radius warning. Every line is the share of bright pixels in a

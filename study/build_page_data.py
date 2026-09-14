@@ -79,6 +79,14 @@ def main(allow_fixture: bool = False) -> int:
                 for k, v in sorted(by.items(), key=lambda kv: float(kv[0])) if v[1]
             ]
 
+    # What survives redrawing the synthetic worms. Act three reads findings off an
+    # ordering, and part of every gap in that ordering is the draw rather than the
+    # setting. Without this the page cannot tell them apart, and one of its own
+    # findings turns out to be the draw.
+    nf = ROOT / "data" / "stats_noise_floor.json"
+    if nf.exists():
+        d["stats_noise_floor"] = json.loads(nf.read_text())
+
     # The granulometry curves behind act three's warning. They travel because the warning
     # rests on the SHAPE of the curve rather than on any single number, and a shape stated
     # as eleven numbers inside a sentence is a shape nobody reads. The page draws it.

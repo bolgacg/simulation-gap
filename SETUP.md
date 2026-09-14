@@ -310,41 +310,85 @@ clips. The whole sweep takes under three minutes on the laptop CPU.
 | noise_005 | noise | 2.782 |
 | noise_010 | noise | 3.390 |
 
-Three results that need no training.
+#### First, the noise floor, because two of these numbers do not clear it
 
-The authors' noise setting sits at a minimum: 0.802 at std 0.01, against 1.544 with
-noise off and 3.390 at std 0.10. That number was not picked arbitrarily.
+The whole sweep was re-run with three simulator seeds, nothing else changed. The median
+seed-to-seed spread in the distance is 0.231 and the largest is 0.276, so a gap below
+about 0.23 is the luck of which ten clips were drawn. Seed-averaged distances:
 
-The length axis agrees with the labelled measurement. Unlabelled statistics prefer
-shorter worms, 0.751 at a 25 px midpoint against 0.802 for the repo's 37.5 px, and the
-direct measurement puts real centrelines at a median of 29.5 px against 37.5 px
-simulated. Two independent routes, same direction.
+| Config | Mean over 3 seeds | Config | Mean over 3 seeds |
+|---|---|---|---|
+| R_120 | 0.386 | L_20_30 | 0.667 |
+| R_160 | 0.485 | L_35_55 | 0.687 |
+| L_25_35 | 0.645 | R_040, R_060 | 0.847 |
+| alpha_wide | 0.647 | noise_000 | 1.689 |
+| defaults | 0.659 | noise_005 | 2.889 |
+| alpha_tight | 0.662 | noise_010 | 3.437 |
 
-The third is a warning, not a finding, and it is the most useful thing here. The
-aggregate distance prefers much thicker worms, R=1.2 at 0.540 against R=0.8 at 0.802,
-which contradicts the labelled measurement that real bodies are 2.50 px wide against
-2.70 px simulated. Breaking the distance into its parts explains it. The granulometry
-statistics, the ones that actually measure body width, prefer the repo value and
-R=0.4, with z near 0.76 against 1.0 for R=1.2, agreeing with the labels. What drags
-R=1.2 to the top is the motion statistics: synthetic clips change too much between
-frames relative to their spatial contrast, `frame_diff_over_sd` 0.535 against 0.394
-real, and thickening the bodies raises spatial contrast, which buys down that error.
-A scalar distance over fourteen statistics lets one setting compensate for a mismatch
-on an axis it has nothing to do with. That hazard is visible before any model is
-trained, and it is a real caution for the thesis the project rests on.
+Rank correlation between seeds is 0.82, 0.81 and 0.95: the broad ordering is stable,
+the fine ordering is not. The floor is this large because each configuration is measured
+from only ten synthetic clips; more clips would shrink it, and that is the fix rather
+than a tighter claim.
 
-A fourth result is negative. Drag anisotropy spans only 0.787 to 0.802, against 0.54
-to 3.39 across the other axes, so these statistics cannot rank the motion axis even
-after three temporal statistics were added for exactly that purpose.
+#### Noise, which clears the floor easily
 
-Two cautions about the sweep's own shape. Four of the sixteen configs (`L_30_45`,
-`R_080`, `alpha_repo`, `noise_001`) hold the repo's own values on their axis, so they
-are the defaults under another name and all score exactly 0.802; they are kept as
-on-axis reference points and flagged `is_repo_default_on_its_axis`, but the sweep
-moves four axes across thirteen distinct settings, not sixteen. And adding the
-temporal statistics flipped the length axis: with spatial statistics alone, longer
-worms looked better; with motion included, shorter. The ranking depends on which
-statistics are chosen, which is itself worth reporting.
+The authors' own setting is a minimum: 0.66 at std 0.01 against 1.69 with noise off,
+2.89 at 0.05 and 3.44 at 0.10. The nearest gap is 1.03, over four times the floor, and
+the ordering holds under all three seeds. That number was not picked arbitrarily.
+
+#### Body radius, which clears the floor but only just
+
+R_120 at 0.39 against the repo's 0.66 is a gap of 0.27, 1.2 times the floor, so the
+direction is real but weak. It says thicker, which contradicts the labelled measurement
+that real bodies are 2.50 px wide against 2.70 px already simulated at R=0.8. Every
+subset of the statistics agrees on thicker, granulometry included, so this is not one
+axis compensating for another. The granulometry curves show what is going on, and they
+are about the shape of a curve rather than the scalar, so they stand clear of the floor:
+
+| Opening radius | r=1 | r=2 | r=3 | r=4 | r=6 |
+|---|---|---|---|---|---|
+| Real | 0.851 | 0.678 | 0.556 | 0.488 | 0.393 |
+| R=0.8 | 0.815 | 0.608 | 0.461 | 0.382 | 0.281 |
+| R=1.6 | 0.849 | 0.673 | 0.450 | 0.341 | 0.235 |
+
+Real frames hold more bright signal than synthetic at every scale. Thickening closes
+the small-scale gap almost exactly and widens the large-scale one. No body radius
+reproduces the shape of the real curve, because real frames carry bright structure at
+scales larger than a worm that the simulator does not produce at any radius: plate
+debris and out-of-focus material are the obvious candidates. A scalar distance has one
+lever on that error, so it turns "this simulator cannot make images like these" into
+"make the worms thicker". A laboratory tuning on it would thicken its worms and never
+find what is actually missing.
+
+#### Worm length, withdrawn
+
+An earlier version of this file claimed the statistics prefer shorter worms and so
+agree with the direct measurement. Seed-averaged, the four settings span 0.645 to 0.687,
+a range of 0.042, under a fifth of the floor. The claim does not survive and is
+withdrawn. The labelled measurement of 29.5 px real against 37.5 px simulated still
+stands on its own; what is gone is the idea that the unlabelled statistics corroborate
+it. The ordering also moves with the statistic set: spatial statistics alone prefer the
+longest setting, granulometry and motion alone prefer the shortest.
+
+#### Drag anisotropy, the useful negative
+
+The axis spans 0.647 to 0.662, a range of 0.016, which is 0.07 of the floor. Put beside
+the physics this is the strongest thing here. Alpha is the one simulator parameter that
+can be shown wrong from first principles: the code draws `abs(normal(4, 4) + 1.0)`,
+median 5.06, where slender-body theory puts the normal-to-tangential drag ratio at 1.5
+to 2, and only 4.8 percent of draws land in that range while 71.5 percent exceed 3.
+Moving it from the unphysical default to the physical value changes the unlabelled
+statistics by nothing measurable. A method that chooses simulator settings by matching
+unlabelled image statistics would not find this simulator's most clearly mis-set
+parameter.
+
+#### One caution about the sweep's shape
+
+Four of the sixteen configs (`L_30_45`, `R_080`, `alpha_repo`, `noise_001`) hold the
+repo's own values on their axis, so they are the defaults under another name and score
+identically; they are kept as on-axis reference points and flagged
+`is_repo_default_on_its_axis`, but the sweep moves four axes across thirteen distinct
+settings, not sixteen.
 
 ### The real-data score, validated against the published model
 

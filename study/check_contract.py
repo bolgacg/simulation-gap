@@ -53,6 +53,11 @@ OPTIONAL = {
     "defaults_run.not_achievable_because": "act one cannot say WHY the learning curve is flat, so a reader cannot tell a schedule that was chosen too short from a machine that never came back",
     "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
+    "statistics_only_finding.noise_axis_CLEARS_the_floor": "act three loses the one axis where the authors' own choice is shown to sit at a minimum, which is the only positive result the statistics half produces",
+    "statistics_only_finding.radius_axis_CLEARS_the_floor": "act three states the radius warning without the evidence that the ordering behind it survives redrawing the worms, so a reader cannot tell it from the two axes that do not",
+    "statistics_only_finding.length_axis_DOES_NOT_clear_the_floor": "the page silently drops its own withdrawn claim about worm length instead of showing that it was withdrawn",
+    "statistics_only_finding.motion_axis_DOES_NOT_clear_the_floor": "the page loses the sharpest negative it has, that the statistics cannot see the one parameter the simulator gets physically wrong",
+    "statistics_only_finding.how_to_read_this": "the axis table appears with no account of how the draw was separated from the setting, so every verdict in it reads as an assertion",
     "simulator_findings.drag_anisotropy_prior_is_unphysical": "the reading-the-simulator section loses the one finding of its five that the sweep can actually reach, and its opening sentence silently changes to a weaker claim",
     "simulator_findings.wave_amplitude_is_gated_at_a_fixed_rate": "the section loses the clearest case of a defect that no setting can move, which is the whole reason the section exists",
     "simulator_findings.a_flag_that_does_nothing": "the section loses the dead --sim_dropout flag",
@@ -67,6 +72,7 @@ OPTIONAL = {
 SIDE_FILES = {
     "data/labelling_check.json": "the page cannot say whether precision is reportable, so it will not quote precision",
     "data/baseline_real.json": "the browser self-check cannot re-add the baseline from its per-clip counts",
+    "data/stats_noise_floor.json": "act three shows no repeat measurement, so the axis table disappears and the page says the statistics were computed once and no ordering on them should be read as a finding",
 }
 
 CONFIG_FIELDS = ["name", "axis", "axis_value", "real_score"]

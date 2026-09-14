@@ -82,6 +82,42 @@ def gate_curve():
     return points, points[-1]["real_score"]
 
 
+def seed_repeats():
+    """
+    The same statistics sweep re-run with different simulator seeds.
+
+    Each configuration is measured from a pool of only ten synthetic clips, so the
+    distance carries sampling noise of its own. Without this, an ordering between two
+    configurations cannot be told from the luck of which worms were drawn.
+    """
+    import statistics as st
+    files = sorted(DATA.glob("stats_sweep*.json"))
+    runs = [json.loads(f.read_text()) for f in files]
+    if len(runs) < 2:
+        return None
+    per = {}
+    for r in runs:
+        for c in r["configs"]:
+            per.setdefault(c["name"], []).append(c["stat_distance_to_real"])
+    spreads = [max(v) - min(v) for v in per.values() if len(v) > 1]
+    return {
+        "seeds": len(runs),
+        "files": [f.name for f in files],
+        "clips_per_config": 10,
+        "per_config": {
+            n: {"values": v, "mean": st.mean(v), "spread": max(v) - min(v)}
+            for n, v in per.items()
+        },
+        "noise_floor_median_spread": st.median(spreads),
+        "noise_floor_max_spread": max(spreads),
+        "what_it_means": "a difference in stat_distance_to_real smaller than about 0.23 "
+                         "is not a difference. It is the luck of which ten clips were "
+                         "drawn. The floor is this large because each configuration is "
+                         "measured from only ten clips; generating more would shrink it, "
+                         "and that is the fix rather than a tighter claim.",
+    }
+
+
 def threshold_rows():
     f = DATA / "threshold_sweep.json"
     return json.loads(f.read_text()) if f.is_file() else None
@@ -92,6 +128,7 @@ def main():
     base = json.loads((DATA / "baseline_real_corrected.json").read_text())
     curve, last_score = gate_curve()
     thr = threshold_rows()
+    floor = seed_repeats()
 
     by_axis_default = {a["key"]: a["default_value"] for a in AXES}
 
@@ -119,10 +156,21 @@ def main():
             "train_seconds": None,
             "sim_stats": c["sim_stats"],
             "stat_distance_to_real": c["stat_distance_to_real"],
+            "stat_distance_mean_over_seeds": None,
+            "stat_distance_spread_over_seeds": None,
             "per_statistic_z": c["per_statistic_z"],
         })
 
-    ranked = sorted(configs, key=lambda c: c["stat_distance_to_real"])
+    if floor:
+        for c in configs:
+            r = floor["per_config"].get(c["name"])
+            if r:
+                c["stat_distance_mean_over_seeds"] = r["mean"]
+                c["stat_distance_spread_over_seeds"] = r["spread"]
+
+    key = ("stat_distance_mean_over_seeds" if floor else "stat_distance_to_real")
+    ranked = sorted(configs, key=lambda c: c[key] if c[key] is not None
+                    else c["stat_distance_to_real"])
 
     out = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -291,52 +339,76 @@ def main():
                               "trained. A correlation over zero paired points is not a "
                               "number and is left null.",
             "ranking_by_stats_best_first": [c["name"] for c in ranked],
+            "noise_floor_on_the_statistics": floor["noise_floor_median_spread"] if floor else None,
+            "axes_that_clear_the_floor": ["sensor_noise", "body_radius"] if floor else None,
+            "axes_that_do_not": ["worm_length", "drag_anisotropy"] if floor else None,
         },
+        "statistics_noise_floor": floor,
         "statistics_only_finding": {
             "what": "what the unlabelled statistics say on their own, with no training",
-            "noise_axis": "the authors' own noise setting is the best match to real among "
-                          "the four tested. Distance is 0.80 at std 0.01, rising to 1.54 "
-                          "with noise switched off and 3.39 at std 0.10. Their choice sits "
-                          "at a minimum rather than at an arbitrary point.",
-            "length_axis": "shorter worms match better, 0.751 at a 25 px midpoint against "
-                           "0.802 for the repo's 37.5 px, which agrees with the direct "
-                           "measurement that real centrelines have a median of 29.5 px "
-                           "against the simulator's 37.5 px mean.",
+            "noise_floor": floor["noise_floor_median_spread"] if floor else None,
+            "how_to_read_this": "the same sweep was repeated with three simulator seeds and "
+                "nothing else changed. The draw moves every configuration together: the mean "
+                "distance over all sixteen is 1.10 on the first seed against 0.95 on the "
+                "second, so most of a configuration's spread across seeds is a shift shared "
+                "by all of them. Settings are therefore compared inside a seed and the "
+                "differences averaged afterwards, which is the paired comparison the design "
+                "supports. An axis is reported only if every setting on it stays on the same "
+                "side of the repository's value in all three draws. Two of the four do.",
+            "noise_axis_CLEARS_the_floor": "the authors' own setting is a clear minimum, "
+                "first of four in every draw. Paired against their std 0.01, switching noise "
+                "off costs 1.03 and the two larger settings cost 2.23 and 2.78, each with a "
+                "scatter across draws under a tenth of itself. Their choice sits at a minimum "
+                "rather than at an arbitrary point.",
+            "radius_axis_CLEARS_the_floor": "the repository's R=0.8 sits third of five in "
+                "every draw. Paired against it, R=1.2 is closer to real by 0.273 with a "
+                "scatter of 0.023 across draws, R=1.6 by 0.174, and both thinner settings are "
+                "further away by 0.188. The direction is thicker, it is the same in all three "
+                "draws, and it disagrees with the labelled width measurement, which is the "
+                "finding below. An earlier version of this file compared that gap against the "
+                "spread of one configuration across draws and called it weak. That spread is "
+                "mostly the shift the draw applies to everything, so the comparison was the "
+                "wrong one and the finding is stronger than it said.",
+            "length_axis_DOES_NOT_clear_the_floor": "the repository's 37.5 px sits third "
+                "of four on the first draw and first of four on both later ones. Paired "
+                "differences against it run from -0.028 to +0.014, each with a scatter of "
+                "its own size, and no setting stays on one side. An earlier version of this file claimed the statistics "
+                "prefer shorter worms and therefore agree with the direct measurement that "
+                "real centrelines are 29.5 px against 37.5 px simulated. That claim does "
+                "not survive the repeats and has been withdrawn. The statistics say "
+                "nothing about worm length at this sample size.",
+            "motion_axis_DOES_NOT_clear_the_floor": "drag anisotropy has no consistent "
+                "ordering. The wider setting is closer to real by 0.013 in every draw while "
+                "the tighter one changes side, and 0.013 is a twentieth of what moving the "
+                "body radius does. This matters "
+                "more than the other negatives: alpha is the one parameter that can be "
+                "shown wrong on physical grounds, drawn with a median near 5 where "
+                "slender-body theory says 1.5 to 2, and moving it to the physical value "
+                "changes the statistics by nothing measurable. A method that picks "
+                "simulator settings by matching unlabelled statistics would not find the "
+                "simulator's most clearly mis-set parameter.",
             "radius_axis_warning": "the unlabelled statistics want thicker worms than the "
-                                   "repo ships, 0.540 at R=1.2 against 0.802 at R=0.8, and "
-                                   "they want it robustly: every subset of the statistics "
-                                   "agrees, spatial only, granulometry only and motion only "
-                                   "all rank R=1.2 or R=1.6 above R=0.8. The direct labelled "
-                                   "measurement says the opposite, that real bodies are 2.50 "
-                                   "px wide against 2.70 px already simulated at R=0.8. The "
-                                   "granulometry curves show why they disagree, and it is not "
-                                   "that either is noisy. Real frames retain more bright "
-                                   "signal than synthetic ones at EVERY opening radius: at "
-                                   "R=0.8 the shortfall is +0.037, +0.069, +0.095, +0.106, "
-                                   "+0.112 at radii 1, 2, 3, 4 and 6. Thickening the bodies "
-                                   "closes the small-scale gap, R=1.6 reaches +0.003 and "
-                                   "+0.005 at radii 1 and 2, while widening the large-scale "
-                                   "one to +0.106, +0.147 and +0.158. No body radius "
-                                   "reproduces the shape of the real curve, because real "
-                                   "frames carry bright structure at scales larger than a "
-                                   "worm that the simulator does not produce at any radius, "
-                                   "plate debris and out-of-focus material being the obvious "
-                                   "candidates. A scalar distance has only one lever on that "
-                                   "error, so it turns 'this simulator cannot make images "
-                                   "like these' into 'make the worms thicker'. That is the "
-                                   "failure mode the thesis has to survive, and it is visible "
-                                   "before a single model is trained.",
-            "ranking_depends_on_statistic_choice": "the length axis reverses depending on "
-                                   "which statistics are used: spatial statistics alone "
-                                   "prefer the longest setting tested (L_35_55 at 0.654), "
-                                   "while granulometry alone and motion alone both prefer the "
-                                   "shortest (L_20_30 at 0.777 and 0.889). The combined "
-                                   "ranking follows the latter. Nothing in the method fixes "
-                                   "the weighting, so the ordering on this axis is a choice "
-                                   "as much as a measurement.",
-            "motion_axis": "drag anisotropy is barely separated, 0.787 to 0.802 across the "
-                           "range tested against a spread of 0.54 to 3.39 on the other axes, "
-                           "so these statistics cannot rank it.",
+                "repo ships and every subset of them agrees, spatial only, granulometry "
+                "only and motion only. The direct labelled measurement says the opposite, "
+                "that real bodies are 2.50 px wide against 2.70 px already simulated at "
+                "R=0.8. The granulometry curves show why, and it is not that either is "
+                "noisy. Real frames retain more bright signal than synthetic at EVERY "
+                "opening radius: at R=0.8 the shortfall is +0.037, +0.069, +0.095, +0.106 "
+                "and +0.112 at radii 1, 2, 3, 4 and 6. Thickening closes the small-scale "
+                "gap, R=1.6 reaches +0.003 and +0.005 at radii 1 and 2, while widening the "
+                "large-scale one to +0.106, +0.147 and +0.158. No body radius reproduces "
+                "the shape of the real curve, because real frames carry bright structure "
+                "at scales larger than a worm that the simulator does not produce at any "
+                "radius, plate debris and out-of-focus material being the obvious "
+                "candidates. A scalar distance has one lever on that error, so it turns "
+                "'this simulator cannot make images like these' into 'make the worms "
+                "thicker'. That is the failure mode the thesis has to survive, and it is "
+                "visible before a single model is trained.",
+            "ranking_depends_on_statistic_choice": "on the axes that do not clear the "
+                "floor the ordering also moves with the statistic set: spatial statistics "
+                "alone prefer the longest length tested while granulometry alone and "
+                "motion alone prefer the shortest. Equal weighting over fourteen "
+                "statistics is a choice nobody has justified.",
         },
         "simulator_findings": {
             "what": "things about the authors' simulator that are visible from reading it "
@@ -429,8 +501,17 @@ def main():
             "a quarter of the frame, which is corrected for here, but a labeller marking a "
             "constant fraction of the worms inside that disc cannot be excluded from these "
             "files, and would depress precision without showing up in any of the checks.",
-            "No configuration was run more than once, so there is no measured noise floor "
-            "and no difference between configurations can be called larger than chance.",
+            "No TRAINING run was repeated, so there is no noise floor on the real scores "
+            "and no difference between configurations on those could be called larger than "
+            "chance. The statistics half was repeated with three seeds and does have one. "
+            "The draw shifts the whole field by 0.15 between seeds, so settings are compared "
+            "inside a draw; on that comparison the noise and body radius axes keep their "
+            "ordering in all three draws and worm length and drag anisotropy do not, so no "
+            "ordering on those two is reportable.",
+            "Each configuration's statistics come from a pool of only ten synthetic clips, "
+            "which is what makes the noise floor as large as it is. Generating more clips "
+            "per configuration would shrink it and is the right fix; it was not done here "
+            "for time.",
         ],
     }
 
