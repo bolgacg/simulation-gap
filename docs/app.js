@@ -609,7 +609,7 @@
     var STEPS = [
       { sel: 'header h1', k: 'Welcome · 1 of 5', html: 'A detector trained entirely on simulated worms, taken apart to find which of the simulator\'s settings the result depends on.' },
       { sel: '#domain', k: 'The loop · 2 of 5', html: 'Settings make synthetic footage, synthetic footage trains a model, the model is scored on real footage. The dashed line is the loop the fellowship wants closed without labels.' },
-      { sel: '#baselinestat', k: 'The reference · 3 of 5', html: 'The published weights scored by this page\'s own code. If this disagreed with the paper, nothing further would be worth reading.' },
+      { sel: '#baselinestat', k: 'The reference · 3 of 5', html: 'The published weights, scored by this page\'s own code. Every number later is a comparison against this one, so the coda adds the per-clip counts up again in your browser to show it is the sum of its own parts.' },
       { sel: '#sweepviz', k: 'One setting at a time · 4 of 5', html: '<b>Click a setting above the chart.</b> Each point is a model trained from scratch with that setting moved and scored on the same real footage.' },
       { sel: '#thesisviz', k: 'The real question · 5 of 5', html: 'Every configuration ranked twice: once by real score, once by how closely its synthetic frames match real ones statistically, with no labels. Whether those two agree is the point of the page.' }
     ];
