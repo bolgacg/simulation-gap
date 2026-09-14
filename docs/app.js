@@ -15,44 +15,104 @@
     });
   }
   function num(x, d) { return x == null ? 'n/a' : Number(x).toFixed(d == null ? 3 : d); }
+  function n(x) { return x == null ? 'n/a' : Number(x).toLocaleString('en-GB'); }
+  // A caption drawn inside an SVG shrinks with the SVG, so on a phone it becomes
+  // unreadable while an overflow probe still calls the page clean. Captions live in
+  // HTML beside the chart and stay at body size at every width.
+  function caption(id, text) { var e = $(id + '-cap'); if (e) e.textContent = text; }
+  // These charts are drawn in an 860-wide coordinate space and rendered into whatever
+  // width the column has. On a phone that is about 350px, so every label inside the SVG
+  // renders at 40 percent of its stated size and an 11px caption becomes 5px. Drawing a
+  // narrower picture on a narrow screen keeps the text near its intended size.
+  function isNarrow() { return window.innerWidth < 620; }
+  function redrawOnWidthChange(fn) {
+    if (fn._bound) return;
+    fn._bound = true;
+    var last = isNarrow();
+    window.addEventListener('resize', function () {
+      var now = isNarrow();
+      if (now !== last) { last = now; fn(); }
+    });
+  }
 
   var state = { axis: null };
 
   function drawDomain() {
     var host = $('#domainviz'); if (!host) return;
-    var W = 900, H = 190;
-    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
-      'aria-label': 'Simulator settings produce synthetic footage, which trains a model, which is scored on real footage' });
     var boxes = [
-      { x: 8, w: 196, t: 'Simulator settings', s: '27 numbers deciding what a synthetic worm looks like and how it moves' },
-      { x: 232, w: 196, t: 'Synthetic footage', s: 'frames where every worm position is known by construction' },
-      { x: 456, w: 196, t: 'A trained model', s: 'the published architecture, trained from scratch on those frames' },
-      { x: 692, w: 200, t: 'Real footage', s: 'clips a human labelled, which the model has never seen' }
+      { t: 'Simulator settings', s: '27 numbers deciding what a synthetic worm looks like and how it moves' },
+      { t: 'Synthetic footage', s: 'frames where every worm position is known by construction' },
+      { t: 'A trained model', s: 'the published architecture, trained from scratch on those frames' },
+      { t: 'Real footage', s: 'clips a human labelled, which the model has never seen' }
     ];
-    boxes.forEach(function (b, i) {
-      s.appendChild(el('rect', { x: b.x, y: 26, width: b.w, height: 116, rx: 6, fill: '#fff', stroke: '#c9c5be' }));
-      s.appendChild(el('text', { x: b.x + 13, y: 50, 'font-family': "'Newsreader',Georgia,serif",
-        'font-size': 16, 'font-weight': 600, fill: '#1a1d21' }, b.t));
-      var words = b.s.split(' '), line = '', y = 70;
-      var put = function (tx) {
-        s.appendChild(el('text', { x: b.x + 13, y: y, 'font-family': "'IBM Plex Sans',sans-serif",
-          'font-size': 11, fill: '#5b6470' }, tx));
-        y += 14;
-      };
-      words.forEach(function (w) { if ((line + ' ' + w).length > 28) { put(line); line = w; } else line = line ? line + ' ' + w : w; });
+    var loop = 'The loop the fellowship wants closed without labels: let the real footage choose the settings.';
+    // Four boxes side by side need 900 units of width. Rendered into a phone column that
+    // scales every label to under four pixels, so on a narrow screen the same four boxes
+    // are stacked instead and each one gets the full width.
+    var narrow = isNarrow();
+    var s2;
+    function wrap(text, perLine, put) {
+      var words = text.split(' '), line = '';
+      words.forEach(function (w) {
+        if ((line + ' ' + w).length > perLine) { put(line); line = w; } else line = line ? line + ' ' + w : w;
+      });
       if (line) put(line);
-      if (i < boxes.length - 1) {
-        var x1 = b.x + b.w + 4, x2 = boxes[i + 1].x - 4;
-        s.appendChild(el('line', { x1: x1, y1: 84, x2: x2, y2: 84, stroke: '#8b95a1', 'stroke-width': 1.5 }));
-        s.appendChild(el('circle', { cx: x2 - 2, cy: 84, r: 2.5, fill: '#8b95a1' }));
-      }
-    });
-    s.appendChild(el('path', { d: 'M 890 148 L 890 170 L 106 170 L 106 148', fill: 'none',
-      stroke: '#b03a3a', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }));
-    s.appendChild(el('text', { x: 498, y: 166, 'text-anchor': 'middle', 'font-family': "'IBM Plex Sans',sans-serif",
-      'font-size': 11.5, fill: '#b03a3a' },
-      'The loop the fellowship wants closed without labels: let the real footage choose the settings.'));
-    host.innerHTML = ''; host.appendChild(s);
+    }
+    if (narrow) {
+      var BW = 380, BH = 74, GAP = 16, W = 400, H = boxes.length * (BH + GAP) + 46;
+      s2 = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+        'aria-label': 'Simulator settings produce synthetic footage, which trains a model, which is scored on real footage' });
+      boxes.forEach(function (b, i) {
+        var y = i * (BH + GAP);
+        s2.appendChild(el('rect', { x: 10, y: y, width: BW, height: BH, rx: 6, fill: '#fff', stroke: '#c9c5be' }));
+        s2.appendChild(el('text', { x: 22, y: y + 22, 'font-family': "'Newsreader',Georgia,serif",
+          'font-size': 15, 'font-weight': 600, fill: '#1a1d21' }, b.t));
+        var ty = y + 40;
+        wrap(b.s, 52, function (line) {
+          s2.appendChild(el('text', { x: 22, y: ty, 'font-family': "'IBM Plex Sans',sans-serif",
+            'font-size': 11, fill: '#5b6470' }, line));
+          ty += 14;
+        });
+        if (i < boxes.length - 1) {
+          s2.appendChild(el('line', { x1: 200, y1: y + BH + 2, x2: 200, y2: y + BH + GAP - 2,
+            stroke: '#8b95a1', 'stroke-width': 1.5 }));
+          s2.appendChild(el('circle', { cx: 200, cy: y + BH + GAP - 3, r: 2.5, fill: '#8b95a1' }));
+        }
+      });
+      var ly = boxes.length * (BH + GAP) + 6;
+      wrap(loop, 56, function (line) {
+        s2.appendChild(el('text', { x: 10, y: ly, 'font-family': "'IBM Plex Sans',sans-serif",
+          'font-size': 11, fill: '#b03a3a' }, line));
+        ly += 14;
+      });
+    } else {
+      var W2 = 900, H2 = 190;
+      s2 = el('svg', { viewBox: '0 0 ' + W2 + ' ' + H2, role: 'img',
+        'aria-label': 'Simulator settings produce synthetic footage, which trains a model, which is scored on real footage' });
+      var xs = [{ x: 8, w: 196 }, { x: 232, w: 196 }, { x: 456, w: 196 }, { x: 692, w: 200 }];
+      boxes.forEach(function (b, i) {
+        var g = xs[i];
+        s2.appendChild(el('rect', { x: g.x, y: 26, width: g.w, height: 116, rx: 6, fill: '#fff', stroke: '#c9c5be' }));
+        s2.appendChild(el('text', { x: g.x + 13, y: 50, 'font-family': "'Newsreader',Georgia,serif",
+          'font-size': 16, 'font-weight': 600, fill: '#1a1d21' }, b.t));
+        var y = 70;
+        wrap(b.s, 28, function (line) {
+          s2.appendChild(el('text', { x: g.x + 13, y: y, 'font-family': "'IBM Plex Sans',sans-serif",
+            'font-size': 11, fill: '#5b6470' }, line));
+          y += 14;
+        });
+        if (i < boxes.length - 1) {
+          var x1 = g.x + g.w + 4, x2 = xs[i + 1].x - 4;
+          s2.appendChild(el('line', { x1: x1, y1: 84, x2: x2, y2: 84, stroke: '#8b95a1', 'stroke-width': 1.5 }));
+          s2.appendChild(el('circle', { cx: x2 - 2, cy: 84, r: 2.5, fill: '#8b95a1' }));
+        }
+      });
+      s2.appendChild(el('path', { d: 'M 890 148 L 890 170 L 106 170 L 106 148', fill: 'none',
+        stroke: '#b03a3a', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }));
+      s2.appendChild(el('text', { x: 498, y: 166, 'text-anchor': 'middle', 'font-family': "'IBM Plex Sans',sans-serif",
+        'font-size': 11.5, fill: '#b03a3a' }, loop));
+    }
+    host.innerHTML = ''; host.appendChild(s2);
   }
 
   function axes() {
@@ -87,7 +147,9 @@
       return;
     }
     var axis = axes().filter(function (a) { return a.key === state.axis; })[0] || { label: state.axis };
-    var W = 860, H = 280, P = { l: 62, r: 30, t: 24, b: 48 };
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 860, H = narrow ? 300 : 280;
+    var P = narrow ? { l: 46, r: 14, t: 22, b: 52 } : { l: 62, r: 30, t: 24, b: 48 };
     var vals = rows.map(function (r) { return r.axis_value; });
     var scores = rows.map(function (r) { return r.real_score; });
     var base = D.defaults_run && D.defaults_run.real_score != null ? D.defaults_run.real_score : null;
@@ -119,7 +181,7 @@
       s.appendChild(el('text', { x: X(r.axis_value), y: H - P.b + 16, 'text-anchor': 'middle',
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 10.5, fill: '#8b95a1' }, String(r.axis_value)));
     });
-    s.appendChild(el('text', { x: P.l, y: 14, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
+    s.appendChild(el('text', { x: 0, y: 12, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
       'Score on real labelled footage, higher is better'));
     s.appendChild(el('text', { x: W - P.r, y: H - 8, 'text-anchor': 'end',
       'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
@@ -161,7 +223,9 @@
       $('#v3').innerHTML = '<b>This act is empty until the sweep finishes.</b> It will either show that unlabelled statistics pick the settings that work, or that they do not, and both are worth publishing.';
       return;
     }
-    var W = 860, H = 320, P = { l: 70, r: 26, t: 22, b: 50 };
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 860, H = narrow ? 350 : 320;
+    var P = narrow ? { l: 44, r: 14, t: 22, b: 50 } : { l: 70, r: 26, t: 22, b: 50 };
     var xs = rows.map(function (r) { return r.stat_distance_to_real; });
     var ys = rows.map(function (r) { return r.real_score; });
     var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
@@ -185,10 +249,11 @@
       s.appendChild(el('text', { x: X(r.stat_distance_to_real) + 8, y: Y(r.real_score) + 4,
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 9.5, fill: '#8b95a1' }, esc(r.name)));
     });
-    s.appendChild(el('text', { x: P.l, y: 13, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
+    s.appendChild(el('text', { x: 0, y: 12, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
       'Score on real labelled footage, higher is better'));
-    s.appendChild(el('text', { x: W - P.r, y: H - 8, 'text-anchor': 'end', 'font-family': "'IBM Plex Sans',sans-serif",
-      'font-size': 11.5, fill: '#5b6470' }, 'Distance between synthetic and real image statistics, no labels used'));
+    s.appendChild(el('text', { x: W, y: H - 6, 'text-anchor': 'end', 'font-family': "'IBM Plex Sans',sans-serif",
+      'font-size': 11.5, fill: '#5b6470' }, narrow ? 'Statistical distance to real' :
+      'Distance between synthetic and real image statistics, no labels used'));
     host.innerHTML = ''; host.appendChild(s);
     $('#thesislegend').innerHTML = '<span class="hint">If the fellowship\'s idea holds, points fall from top left to bottom right: the settings that look most like the real thing are the settings that work.</span>';
 
@@ -275,6 +340,84 @@
       $('#src-data').innerHTML = 'The labelled real footage: <a href="' + esc(rd.url) + '">' + esc(rd.source || rd.url) +
         '</a>, ' + esc(rd.licence || '') + '.';
     }
+  }
+
+  // Every model here is trained far below the published schedule, and a reader from this
+  // group will want to know what that buys before they will read anything else. So the
+  // defaults run is scored at several points along its training rather than only at the
+  // end, and the curve says whether the schedule is above the threshold where the model
+  // learns at all. A flat curve would mean the whole sweep compares noise against noise.
+  function drawCurve() {
+    var dr = D.defaults_run || {};
+    var pts = (dr.learning_curve || []).filter(function (p) { return p.steps != null && p.real_score != null; })
+      .sort(function (a, b) { return a.steps - b.steps; });
+    var text = $('#curvetext'), host = $('#curveviz');
+    if (!text || !host) return;
+    if (pts.length < 2) {
+      text.textContent = pts.length
+        ? 'The defaults run was scored at one point only, so there is no curve to read and no way to ' +
+          'tell from this page whether the schedule is long enough to be learning.'
+        : '';
+      caption('#curveviz', '');
+      return;
+    }
+    var last = pts[pts.length - 1], prev = pts[pts.length - 2];
+    var gain = last.real_score - prev.real_score;
+    var total = last.real_score - pts[0].real_score;
+    var base = D.baseline && D.baseline.real_score;
+    text.innerHTML = 'Scored along the way, the defaults configuration reaches ' + num(last.real_score) +
+      ' after ' + n(last.steps) + ' steps' +
+      (base != null ? ', against ' + num(base) + ' for the weights published with the paper, which were trained ' +
+        'roughly three hundred thousand steps across eight devices' : '') + '. ' +
+      (Math.abs(total) < 0.02
+        ? '<b>The curve is flat.</b> At this schedule the model is not learning enough for a difference ' +
+          'between configurations to mean anything, so the sweep below should be read as inconclusive ' +
+          'rather than as a set of findings about the simulator.'
+        : (gain > 0.01
+            ? '<b>It is still climbing at the end.</b> The last step interval added ' + num(gain) +
+              ', so these models are cut off well before they stop improving. That is the intended ' +
+              'trade: every configuration gets the same short schedule, so the comparison between them ' +
+              'is fair even though none of them is any good.'
+            : '<b>It has flattened by the end.</b> The last step interval added ' + num(gain) +
+              ', so more steps at this size would buy little and the comparison below is not being ' +
+              'decided by where the schedule was cut.'));
+
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 760, H = narrow ? 240 : 220;
+    var P = narrow ? { l: 44, r: 14, t: 16, b: 40 } : { l: 58, r: 20, t: 14, b: 38 };
+    var xs = pts.map(function (p) { return p.steps; });
+    var ys = pts.map(function (p) { return p.real_score; });
+    var maxX = Math.max.apply(null, xs);
+    var hiY = Math.max.apply(null, ys.concat(base != null ? [base] : []));
+    var loY = Math.min.apply(null, ys.concat([0]));
+    if (hiY <= loY) hiY = loY + 1;
+    var X = function (v) { return P.l + v / maxX * (W - P.l - P.r); };
+    var Y = function (v) { return H - P.b - (v - loY) / (hiY - loY) * (H - P.t - P.b); };
+    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Score on real footage against training steps for the default settings' });
+    [loY, (loY + hiY) / 2, hiY].forEach(function (g) {
+      s.appendChild(el('line', { x1: P.l, y1: Y(g), x2: W - P.r, y2: Y(g), stroke: '#e2e0dc' }));
+      s.appendChild(el('text', { x: P.l - 8, y: Y(g) + 4, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, num(g, 2)));
+    });
+    if (base != null) {
+      s.appendChild(el('line', { x1: P.l, y1: Y(base), x2: W - P.r, y2: Y(base),
+        stroke: '#2c4a6b', 'stroke-dasharray': '5 4', 'stroke-width': 1.6 }));
+      s.appendChild(el('text', { x: W - P.r, y: Y(base) - 6, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11, fill: '#2c4a6b' },
+        'the published weights'));
+    }
+    s.appendChild(el('path', {
+      d: pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.steps).toFixed(1) + ' ' + Y(p.real_score).toFixed(1); }).join(' '),
+      fill: 'none', stroke: '#b03a3a', 'stroke-width': 2.4 }));
+    pts.forEach(function (p) {
+      s.appendChild(el('circle', { cx: X(p.steps), cy: Y(p.real_score), r: 4, fill: '#b03a3a' }));
+      s.appendChild(el('text', { x: X(p.steps), y: H - P.b + 15, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, n(p.steps)));
+    });
+    host.innerHTML = ''; host.appendChild(s);
+    caption('#curveviz', 'What the default settings score on real footage as training goes on. ' +
+      'Every configuration in act two is cut off at the last point on this line.');
   }
 
   // Seventeen models are trained on this page, so it carries a card saying what they
@@ -399,7 +542,9 @@
         'and the page shows recall and distance only.';
 
     var host = $('#labelcheckviz'); if (!host) return;
-    var W = 760, H = 210, P = { l: 52, r: 18, t: 16, b: 34 };
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 760, H = narrow ? 230 : 210;
+    var P = narrow ? { l: 42, r: 14, t: 18, b: 38 } : { l: 52, r: 18, t: 16, b: 34 };
     var maxX = Number(last);
     var maxY = Math.max.apply(null, keys.map(function (k) { return by[k].mean_labels; }));
     var sx = function (v) { return P.l + v / maxX * (W - P.l - P.r); };
@@ -418,9 +563,8 @@
       s.appendChild(el('text', { x: sx(x), y: H - P.b + 15, 'text-anchor': 'middle',
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, Number(k) + 'x'));
     });
-    s.appendChild(el('text', { x: P.l, y: 11, 'font-family': "'IBM Plex Sans',sans-serif",
-      'font-size': 11, fill: '#5b6470' },
-      'Mean labels per clip against stated worm density. The dashed line is proportional, not fitted to an intercept.'));
+    caption('#labelcheckviz', 'Mean labels per clip against stated worm density. The dashed line is ' +
+      'proportional, not fitted to an intercept.');
     host.innerHTML = '';
     host.appendChild(s);
   }
@@ -496,6 +640,7 @@
         'Nothing here is measured. Run study/build_page_data.py against the real sweep output.');
       return;
     }
-    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); modelCard(); selfCheck(); drawLabelCheck(); tour();
+    redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
+    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
   });
 })();
