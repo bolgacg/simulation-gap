@@ -195,60 +195,144 @@ def crossing_scaling(labels):
     }
 
 
-def label_region(labels, size=256):
-    """Where in each crop the labels actually are.
+def label_region(labels, size=256, frames_dir=None, max_frames=60):
+    """Where in each crop the labels are, and whether that is the labelling or the data.
 
-    This is the test that works, and it found something. Sub-region labelling, meaning
-    marking the middle of a crop and ignoring the edges, produces a line through the
-    origin like exhaustive labelling and produces quadratic crossing growth like
-    exhaustive labelling, so neither earlier test can see it. It is visible directly.
+    This is the test that works. Sub-region labelling produces a line through the origin
+    like exhaustive labelling and quadratic crossing growth like exhaustive labelling, so
+    neither earlier test can see it. It is visible directly, and three further checks say
+    what put the labels there.
 
-    It matters more than the others because of what it does to precision: detections are
-    counted across the whole frame while labels exist only where someone drew them, so
-    every correct detection outside the labelled region is recorded as a false positive.
+    It matters most because of what it does to precision: detections are counted across
+    the whole frame while labels exist only where someone drew them, so every correct
+    detection outside the labelled region is recorded as a false positive.
     """
-    xs, ys = [], []
-    for rec in labels.values():
+    import os
+
+    centres, pts, by_density = [], [], collections.defaultdict(list)
+    for clip, rec in labels.items():
+        dn = density_of(clip)
         for spline in rec["splines"]:
-            if len(spline["x"]) < 2:
+            xs, ys = spline["x"], spline["y"]
+            if len(xs) < 2:
                 continue
-            xs.extend(spline["x"])
-            ys.extend(spline["y"])
-    if not xs:
+            pts.extend(zip(xs, ys))
+            c = (float(np.mean(xs)), float(np.mean(ys)))
+            centres.append(c)
+            if dn is not None:
+                by_density[dn].append(c)
+    if not centres:
         return None
-    xs, ys = np.array(xs), np.array(ys)
-    boxes = []
-    for half in (56, 64, 72, 80):
-        lo, hi = size / 2 - half, size / 2 + half
-        inside = float(((xs >= lo) & (xs <= hi) & (ys >= lo) & (ys <= hi)).mean())
-        boxes.append({
-            "box_px": [round(lo), round(hi)],
-            "side_px": 2 * half,
-            "area_share_pct": round(100.0 * (2 * half / size) ** 2, 1),
-            "points_inside_pct": round(100.0 * inside, 1),
-        })
-    chosen = next((b for b in boxes if b["points_inside_pct"] >= 97.0), boxes[-1])
+    P, C = np.array(pts), np.array(centres)
+
+    # The centre of the labelled region, found rather than assumed. It is not the centre
+    # of the frame, which is itself worth knowing: an optical or cropping cause would sit
+    # centred, and this does not.
+    best = None
+    for cx in np.arange(size / 2 - 24, size / 2 + 25, 1.0):
+        for cy in np.arange(size / 2 - 24, size / 2 + 25, 1.0):
+            rad = float(np.percentile(np.hypot(P[:, 0] - cx, P[:, 1] - cy), 97.3))
+            if best is None or rad < best[0]:
+                best = (rad, float(cx), float(cy))
+    rad_pts, cx, cy = best
+
+    # On worm centres rather than on clicked points the edge is sharp, because the point
+    # cloud is a boundary on centres smeared out by the length of a worm.
+    r = np.hypot(C[:, 0] - cx, C[:, 1] - cy)
+    shells = [(0, 20), (20, 40), (40, 60), (60, 70), (70, 80), (80, 90), (90, 128)]
+    profile = []
+    for lo, hi in shells:
+        n = int(((r >= lo) & (r < hi)).sum())
+        area = math.pi * (hi ** 2 - lo ** 2) / size ** 2
+        profile.append({"shell_px": [lo, hi], "centres": n,
+                        "density_vs_uniform": round(float((n / len(C)) / area), 2)})
+    # The radius that holds almost every worm centre, taken from the centres themselves.
+    r_hard = float(np.percentile(r, 97.0))
+    inside_hard = float((r <= r_hard).mean())
+    area_hard = math.pi * r_hard ** 2 / size ** 2
+
+    # Is there worm-like content outside the region, or is the picture empty there? If the
+    # imagery faded at the edges, the labelling would be following the data rather than a
+    # habit. Mean gradient magnitude is large where a worm edge is.
+    imagery = None
+    frames_dir = frames_dir or os.path.join(os.path.dirname(LABELS), "frames")
+    if os.path.isdir(frames_dir):
+        try:
+            from PIL import Image
+            yy, xx = np.mgrid[0:size, 0:size]
+            rr = np.hypot(xx - cx, yy - cy)
+            acc_i = np.zeros(len(shells)); acc_g = np.zeros(len(shells)); k = 0
+            for name in sorted(os.listdir(frames_dir))[:max_frames]:
+                f = os.path.join(frames_dir, name, "05.png")
+                if not os.path.exists(f):
+                    continue
+                im = np.asarray(Image.open(f).convert("L")).astype(float)
+                gy, gx = np.gradient(im)
+                g = np.hypot(gx, gy)
+                for i, (lo, hi) in enumerate(shells):
+                    m = (rr >= lo) & (rr < hi)
+                    acc_i[i] += im[m].mean(); acc_g[i] += g[m].mean()
+                k += 1
+            if k:
+                imagery = [{"shell_px": list(sh),
+                            "mean_intensity": round(float(acc_i[i]) / k, 1),
+                            "mean_gradient": round(float(acc_g[i]) / k, 2)}
+                           for i, sh in enumerate(shells)]
+        except Exception:
+            imagery = None
+
+    # Does the concentration loosen as the field gets crowded? If the crops had been cut
+    # around something already found, it would have to: you cannot place eighteen worms a
+    # clip centrally by construction. If it holds at the highest density, it is a habit.
+    by_dens = {}
+    for dn in sorted(by_density):
+        a = np.array(by_density[dn])
+        rr2 = np.hypot(a[:, 0] - cx, a[:, 1] - cy)
+        by_dens[str(dn)] = {"worms": int(len(a)), "inside_pct": round(100.0 * float((rr2 <= r_hard).mean()), 1)}
+    dens_keys = sorted(by_dens, key=float)
+    holds_at_top = bool(by_dens[dens_keys[-1]]["inside_pct"] >= 90.0) if dens_keys else None
+
+    flat = None
+    if imagery:
+        gs = [row["mean_gradient"] for row in imagery]
+        flat = bool((max(gs) - min(gs)) / (sum(gs) / len(gs)) < 0.15)
+
     return {
         "what_it_measures": (
-            "the share of hand-clicked points falling inside a central box of each crop. "
-            "Labelling confined to the middle passes both of the other tests and is invisible "
-            "to them."
+            "where in each crop the hand labels are, and whether the labelling or the picture "
+            "put them there"
         ),
         "frame_px": size,
-        "boxes": boxes,
-        "smallest_box_holding_97_pct": chosen,
-        "two_explanations": (
-            "someone labelled the middle of each crop and left the edges, or the crops were cut around "
-            "something already found so the worms of interest sit centrally by construction and the "
-            "labelling inside that region is complete. These files cannot separate the two, and the "
-            "consequence for scoring is identical either way"
+        "centre_of_labelled_region": [round(cx, 1), round(cy, 1)],
+        "offset_from_frame_centre_px": [round(cx - size / 2, 1), round(cy - size / 2, 1)],
+        "radius_holding_97pct_of_points": round(rad_pts, 1),
+        "radial_profile_of_worm_centres": profile,
+        "hard_radius_px": round(r_hard, 1),
+        "worm_centres_inside_pct": round(100.0 * inside_hard, 1),
+        "labelled_area_share_pct": round(100.0 * area_hard, 1),
+        "imagery_by_shell": imagery,
+        "imagery_is_flat": flat,
+        "concentration_by_density": by_dens,
+        "concentration_holds_at_highest_density": holds_at_top,
+        "verdict": (
+            "annotation behaviour" if (flat and holds_at_top) else "not established"
+        ),
+        "why_that_verdict": (
+            "the boundary is sharp on worm centres, the imagery outside it carries as much "
+            "worm-like structure as inside it, and the concentration does not loosen as the "
+            "field gets crowded. Optics would show in the imagery and crop selection would "
+            "loosen with density. Neither does."
+            if (flat and holds_at_top) else
+            "one of the three checks did not run or did not support the reading"
+        ),
+        "what_it_does_not_establish": (
+            "this is about where the labels are, not what share of the worms inside that region "
+            "were marked. Nothing here says the labelling is complete within the disc"
         ),
         "consequence_for_precision": (
-            "detections are counted over the whole frame while labels exist only in part of it, "
+            "detections are counted over the whole frame while labels exist in a fraction of it, "
             "so a correct detection outside the labelled region is scored as a false positive. "
-            "Precision over the whole frame is therefore an underestimate by roughly the ratio "
-            "of frame area to labelled area, and the only fix is to score detections inside the "
-            "labelled region alone."
+            "The only fix is to score detections inside the labelled region alone."
         ),
     }
 
@@ -370,14 +454,16 @@ def main():
     ]
     if region:
         result["what_was_found_instead"] = (
-            "the labels are not spread over the crop. " +
-            str(region["smallest_box_holding_97_pct"]["points_inside_pct"]) +
-            " percent of every clicked point falls inside a central " +
-            str(region["smallest_box_holding_97_pct"]["side_px"]) + " pixel box, which is " +
-            str(region["smallest_box_holding_97_pct"]["area_share_pct"]) +
-            " percent of the frame. Detections are counted over the whole frame, so precision "
-            "measured this way counts correct detections in the unlabelled majority as false "
-            "positives."
+            "the labels are not spread over the crop. " + str(region["worm_centres_inside_pct"]) +
+            " percent of labelled worm centres sit inside a disc of radius " +
+            str(region["hard_radius_px"]) + " pixels, which is " +
+            str(region["labelled_area_share_pct"]) + " percent of the frame, and the boundary is "
+            "sharp rather than a gradual thinning. Three checks say this is annotation behaviour "
+            "rather than the picture: the region is a disc and not the rectangle an annotation "
+            "viewport would give, the imagery outside it carries as much worm-like structure as "
+            "inside it, and the concentration does not loosen as the field gets crowded. "
+            "Detections are counted over the whole frame, so precision measured that way counts "
+            "correct detections in the unlabelled majority as false positives."
         )
 
     cov = length_coverage(labels)

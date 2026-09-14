@@ -123,57 +123,180 @@
   "why_it_settles_nothing": "the interval contains the quadratic it was meant to distinguish from, and even if it did not, independent thinning preserves the exponent exactly, so this statistic cannot see a constant fraction at all"
  },
  "label_region": {
-  "what_it_measures": "the share of hand-clicked points falling inside a central box of each crop. Labelling confined to the middle passes both of the other tests and is invisible to them.",
+  "what_it_measures": "where in each crop the hand labels are, and whether the labelling or the picture put them there",
   "frame_px": 256,
-  "boxes": [
+  "centre_of_labelled_region": [
+   113.0,
+   116.0
+  ],
+  "offset_from_frame_centre_px": [
+   -15.0,
+   -12.0
+  ],
+  "radius_holding_97pct_of_points": 78.4,
+  "radial_profile_of_worm_centres": [
    {
-    "box_px": [
-     72,
-     184
+    "shell_px": [
+     0,
+     20
     ],
-    "side_px": 112,
-    "area_share_pct": 19.1,
-    "points_inside_pct": 74.7
+    "centres": 136,
+    "density_vs_uniform": 4.82
    },
    {
-    "box_px": [
-     64,
-     192
+    "shell_px": [
+     20,
+     40
     ],
-    "side_px": 128,
-    "area_share_pct": 25.0,
-    "points_inside_pct": 86.1
+    "centres": 426,
+    "density_vs_uniform": 5.03
    },
    {
-    "box_px": [
-     56,
-     200
+    "shell_px": [
+     40,
+     60
     ],
-    "side_px": 144,
-    "area_share_pct": 31.6,
-    "points_inside_pct": 93.7
+    "centres": 650,
+    "density_vs_uniform": 4.6
    },
    {
-    "box_px": [
-     48,
-     208
+    "shell_px": [
+     60,
+     70
     ],
-    "side_px": 160,
-    "area_share_pct": 39.1,
-    "points_inside_pct": 97.3
+    "centres": 202,
+    "density_vs_uniform": 2.2
+   },
+   {
+    "shell_px": [
+     70,
+     80
+    ],
+    "centres": 37,
+    "density_vs_uniform": 0.35
+   },
+   {
+    "shell_px": [
+     80,
+     90
+    ],
+    "centres": 5,
+    "density_vs_uniform": 0.04
+   },
+   {
+    "shell_px": [
+     90,
+     128
+    ],
+    "centres": 3,
+    "density_vs_uniform": 0.01
    }
   ],
-  "smallest_box_holding_97_pct": {
-   "box_px": [
-    48,
-    208
-   ],
-   "side_px": 160,
-   "area_share_pct": 39.1,
-   "points_inside_pct": 97.3
+  "hard_radius_px": 72.0,
+  "worm_centres_inside_pct": 96.9,
+  "labelled_area_share_pct": 24.8,
+  "imagery_by_shell": [
+   {
+    "shell_px": [
+     0,
+     20
+    ],
+    "mean_intensity": 196.1,
+    "mean_gradient": 3.73
+   },
+   {
+    "shell_px": [
+     20,
+     40
+    ],
+    "mean_intensity": 195.9,
+    "mean_gradient": 3.75
+   },
+   {
+    "shell_px": [
+     40,
+     60
+    ],
+    "mean_intensity": 195.9,
+    "mean_gradient": 3.69
+   },
+   {
+    "shell_px": [
+     60,
+     70
+    ],
+    "mean_intensity": 196.0,
+    "mean_gradient": 3.61
+   },
+   {
+    "shell_px": [
+     70,
+     80
+    ],
+    "mean_intensity": 196.1,
+    "mean_gradient": 3.56
+   },
+   {
+    "shell_px": [
+     80,
+     90
+    ],
+    "mean_intensity": 196.0,
+    "mean_gradient": 3.62
+   },
+   {
+    "shell_px": [
+     90,
+     128
+    ],
+    "mean_intensity": 195.5,
+    "mean_gradient": 3.66
+   }
+  ],
+  "imagery_is_flat": true,
+  "concentration_by_density": {
+   "1.0": {
+    "worms": 20,
+    "inside_pct": 100.0
+   },
+   "1.5": {
+    "worms": 45,
+    "inside_pct": 100.0
+   },
+   "2.0": {
+    "worms": 42,
+    "inside_pct": 100.0
+   },
+   "3.0": {
+    "worms": 66,
+    "inside_pct": 98.5
+   },
+   "4.0": {
+    "worms": 156,
+    "inside_pct": 88.5
+   },
+   "6.0": {
+    "worms": 232,
+    "inside_pct": 97.0
+   },
+   "8.0": {
+    "worms": 181,
+    "inside_pct": 97.8
+   },
+   "10.0": {
+    "worms": 274,
+    "inside_pct": 97.1
+   },
+   "13.0": {
+    "worms": 457,
+    "inside_pct": 98.5
+   }
   },
-  "two_explanations": "someone labelled the middle of each crop and left the edges, or the crops were cut around something already found so the worms of interest sit centrally by construction and the labelling inside that region is complete. These files cannot separate the two, and the consequence for scoring is identical either way",
-  "consequence_for_precision": "detections are counted over the whole frame while labels exist only in part of it, so a correct detection outside the labelled region is scored as a false positive. Precision over the whole frame is therefore an underestimate by roughly the ratio of frame area to labelled area, and the only fix is to score detections inside the labelled region alone."
+  "concentration_holds_at_highest_density": true,
+  "verdict": "annotation behaviour",
+  "why_that_verdict": "the boundary is sharp on worm centres, the imagery outside it carries as much worm-like structure as inside it, and the concentration does not loosen as the field gets crowded. Optics would show in the imagery and crop selection would loosen with density. Neither does.",
+  "what_it_does_not_establish": "this is about where the labels are, not what share of the worms inside that region were marked. Nothing here says the labelling is complete within the disc",
+  "consequence_for_precision": "detections are counted over the whole frame while labels exist in a fraction of it, so a correct detection outside the labelled region is scored as a false positive. The only fix is to score detections inside the labelled region alone."
  },
  "what_is_ruled_out": [
   "a fixed number of labels per clip, because labels rise in proportion to density"
@@ -182,7 +305,7 @@
   "labelling a constant fraction of the worms, chosen independently of context. That produces a line through the origin with a smaller slope and an equally good fit, and it also leaves every scaling exponent unchanged, so no pair statistic can see it either. It is not ruled out and cannot be, from these files.",
   "skipping the tangled worms. The crossing test written for this does not settle it: its interval contains the quadratic it was meant to distinguish from."
  ],
- "what_was_found_instead": "the labels are not spread over the crop. 97.3 percent of every clicked point falls inside a central 160 pixel box, which is 39.1 percent of the frame. Detections are counted over the whole frame, so precision measured this way counts correct detections in the unlabelled majority as false positives.",
+ "what_was_found_instead": "the labels are not spread over the crop. 96.9 percent of labelled worm centres sit inside a disc of radius 72.0 pixels, which is 24.8 percent of the frame, and the boundary is sharp rather than a gradual thinning. Three checks say this is annotation behaviour rather than the picture: the region is a disc and not the rectangle an annotation viewport would give, the imagery outside it carries as much worm-like structure as inside it, and the concentration does not loosen as the field gets crowded. Detections are counted over the whole frame, so precision measured that way counts correct detections in the unlabelled majority as false positives.",
  "simulator_length_coverage": {
   "what_it_measures": "the share of hand-drawn real worms whose length falls inside the range the simulator draws from. A worm outside it is one the model was never shown.",
   "simulator_length_range_px": [

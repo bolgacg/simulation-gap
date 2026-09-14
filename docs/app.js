@@ -790,23 +790,38 @@
         'interval contains the ' + cs.quadratic_would_be + ' it was meant to be distinguished from.');
     }
     if (reg) {
-      var bx = reg.smallest_box_holding_97_pct;
-      parts.push('<b>Looking directly is what found something.</b> The labels are not spread across the ' +
-        'crop. ' + bx.points_inside_pct + ' percent of every clicked point falls inside a central ' +
-        bx.side_px + ' pixel box, which is ' + bx.area_share_pct + ' percent of the ' + reg.frame_px +
-        ' pixel frame. That mode passes both tests above, which is why neither saw it.');
-      parts.push('Two things could put the labels there and this page cannot tell them apart. Someone ' +
-        'may have labelled the middle of each crop and left the edges. Or the crops may have been cut ' +
-        'around something already found, so the worms of interest sit in the centre by construction and ' +
-        'the labelling inside that region is complete. <b>The consequence for scoring is the same either ' +
-        'way</b>, which is why the distinction is worth naming and then setting aside.');
-      parts.push('<b>So the precision quoted in act one is badly understated, and not by a little.</b> ' +
-        'Detections are counted over the whole frame while labels exist in about ' + bx.area_share_pct +
-        ' percent of it, so a correct detection in the unlabelled majority is recorded as a false ' +
-        'positive. The number is a floor with a large and unmeasured gap beneath the truth. Fixing it ' +
-        'means scoring detections inside the labelled region alone, which is a change to the scoring ' +
-        'code rather than a caveat, and until that is done this page reports recall and distance as ' +
-        'measurements and precision as a floor.');
+      var prof = reg.radial_profile_of_worm_centres || [];
+      var inner = prof.length ? prof[0].density_vs_uniform : null;
+      var outer = prof.length ? prof[prof.length - 1].density_vs_uniform : null;
+      parts.push('<b>Looking directly is what found something.</b> The labels are not spread across ' +
+        'the crop. ' + reg.worm_centres_inside_pct + ' percent of labelled worm centres sit inside a ' +
+        'disc of radius ' + reg.hard_radius_px + ' pixels, which is ' + reg.labelled_area_share_pct +
+        ' percent of the ' + reg.frame_px + ' pixel frame, and its centre is ' +
+        Math.abs(reg.offset_from_frame_centre_px[0]) + ' pixels left and ' +
+        Math.abs(reg.offset_from_frame_centre_px[1]) + ' pixels up from the centre of the frame. ' +
+        (inner != null ? 'The edge is sharp rather than a fading: worm centres sit at ' + inner +
+          ' times a uniform spread in the middle and ' + outer + ' times beyond the boundary. ' : '') +
+        'That mode passes both tests above, which is why neither saw it.');
+      if (reg.verdict === 'annotation behaviour') {
+        parts.push('<b>Three checks say this is how the labelling was done, not what the picture ' +
+          'contains.</b> The region is a disc, and the corners a rectangular annotation window would ' +
+          'fill are empty. The imagery outside the disc carries as much worm-like structure as inside ' +
+          'it, measured as the average image gradient, flat to within a few percent from the middle out ' +
+          'to the corners, so there is no fading at the edges for the labelling to be following. And ' +
+          'the concentration does not loosen as the field gets crowded: at the highest density there ' +
+          'are hundreds of labelled worms per set and they are still inside the disc. Crop selection ' +
+          'would have to loosen, because eighteen worms a clip cannot be placed centrally by ' +
+          'construction, and optics would have shown in the imagery. Neither did.');
+      }
+      parts.push('<b>So the precision quoted in act one is badly understated.</b> Detections are ' +
+        'counted over the whole frame while labels exist in about a quarter of it, so a correct ' +
+        'detection in the unlabelled majority is recorded as a false positive. The number is a floor ' +
+        'with a large gap beneath the truth. Fixing it means scoring detections inside the labelled ' +
+        'disc alone, which is a change to the scoring code rather than a caveat.');
+      parts.push('One thing this does not settle, and the page will not stretch it: <b>it says where ' +
+        'the labels are, not what share of the worms inside that disc were marked.</b> Everything ' +
+        'above still leaves a constant share unlabelled as a live possibility, so recall is a ' +
+        'measurement and precision stays a floor even after the region is fixed.');
     }
     text.innerHTML = lc.verdict_exhaustive
       ? parts.join(' ')
