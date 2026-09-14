@@ -427,8 +427,19 @@
     // granulometry chart between them, because the chart is evidence for the first and
     // would read as evidence for the last if it sat under the whole thing.
     if (v) {
-      v.innerHTML = (f.radius_axis_warning
+      // The mechanism comes first when it is there, because it is what makes the radius
+      // warning, the alpha negative and the length disagreement one thing rather than
+      // three separate observations a reader has to join up themselves.
+      v.innerHTML = (f.what_the_distance_is_actually_chasing
         ? '<b>The thing worth taking from this act, and it is a warning rather than a result.</b> ' +
+          cap1(esc(f.what_the_distance_is_actually_chasing)) +
+          ' <b>It detects a motion problem, cannot use the motion parameter to fix it, and ' +
+          'spends two appearance parameters instead.</b><br><br>'
+        : '') +
+        (f.radius_axis_warning
+        ? (f.what_the_distance_is_actually_chasing
+            ? '<b>The same thing seen from the body radius axis.</b> '
+            : '<b>The thing worth taking from this act, and it is a warning rather than a result.</b> ') +
           cap1(esc(f.radius_axis_warning)) + ' <b>So a laboratory tuning on this statistic would thicken ' +
           'its worms and never find what is actually missing from its simulator.</b> The distance has one ' +
           'lever on an error that has nothing to do with body radius, so it pulls that lever. Nothing in ' +

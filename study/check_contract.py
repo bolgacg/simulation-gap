@@ -53,6 +53,7 @@ OPTIONAL = {
     "defaults_run.not_achievable_because": "act one cannot say WHY the learning curve is flat, so a reader cannot tell a schedule that was chosen too short from a machine that never came back",
     "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
+    "statistics_only_finding.what_the_distance_is_actually_chasing": "act three loses the mechanism that makes its three findings one thing, and the radius warning goes back to reading as a fact about body width rather than as a lever being pulled on a temporal error",
     "statistics_only_finding.radius_axis_warning": "act three loses its sting entirely: the verdict box above the granulometry chart goes blank and the chart is left with no claim to be evidence for",
     "statistics_only_finding.noise_axis_CLEARS_the_floor": "act three loses the one axis where the authors' own choice is shown to sit at a minimum, which is the only positive result the statistics half produces",
     "statistics_only_finding.radius_axis_CLEARS_the_floor": "act three states the radius warning without the evidence that the ordering behind it survives redrawing the worms, so a reader cannot tell it from the two axes that do not",
