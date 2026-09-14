@@ -52,6 +52,27 @@ says so where it uses it.
 A null in act three is the more useful result for this reader. If cheap unlabelled
 statistics did pick the right simulator, everyone would already be doing it.
 
+## Two things settled by measurement rather than assumption
+
+**The evaluation set is labelled exhaustively, so precision means what it says.** The
+dataset ships no statement either way, and it matters: if a human labelled only some worms
+per clip, a detection with no label is not a false positive and precision would measure the
+labelling effort instead of the model. The clips come from videos at stated worm densities
+from one to thirteen times, so if every worm in a crop is labelled, labels per crop must
+rise in proportion to density on a line through the origin. Measured: 1.33 labels a clip at
+the lowest density rising to 17.62 at the highest, a proportional fit of 1.39 with an R
+squared of 0.974. A first attempt tried to find unlabelled worms directly by thresholding
+each frame, said only 23 percent of worm-shaped objects carried a label, and was thrown out:
+at these densities touching worms merge into one object and a faint mid-body breaks into
+several, so it measured the threshold rather than the labelling. The docstring says so.
+
+**How much training the comparison needs.** Every model here is trained far below the
+published schedule, so the defaults configuration is scored at several points along its
+training rather than only at the end. If that curve is flat the sweep is comparing noise
+against noise and the page says the result is inconclusive. If it is still climbing, the
+models are cut off early but the comparison between them is fair, because every
+configuration gets the identical schedule.
+
 ## What the simulator does not cover
 
 Measured before any model was trained, on the labelled clips against the simulator's own
@@ -90,6 +111,10 @@ module with "train" in its path silently shadows the real one in the run record.
 | `sweep/sim_stats.py` | measures a synthetic clip exactly as the real clips were measured |
 | `sweep/eval_real.py` | scores a checkpoint on the 178 labelled clips |
 | `sweep/configs/` | the sixteen one-axis configurations |
+| `study/labelling_exhaustive.py` | whether the evaluation set is labelled exhaustively, which decides if precision means anything |
+| `study/check_contract.py` | checks the results file against the fields the page reads, before the page is built |
+| `study/build_page_data.py` | writes `docs/data.js` |
+| `study/verify_page.js` | headless checks: overflow, script errors, the walkthrough at both widths |
 | `SETUP.md` | what was installed, what was measured, and what broke |
 
 `deeptangle` itself is not vendored here. It is cloned per `SETUP.md` and left untouched.
