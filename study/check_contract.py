@@ -50,6 +50,7 @@ OPTIONAL = {
     "training.batch_size": "the model card will print 'not recorded' for the schedule",
     "training.identical_across_runs": "the model card cannot state that runs share a schedule",
     "defaults_run.learning_curve": "act one will show no learning curve, so nothing on the page says whether the schedule was long enough to learn",
+    "defaults_run.not_achievable_because": "act one cannot say WHY the learning curve is flat, so a reader cannot tell a schedule that was chosen too short from a machine that never came back",
     "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
     "hardware.startup_seconds": "the method section cannot say how much of a run is compilation, which is the fact that decides how a sweep should be shaped on one card",

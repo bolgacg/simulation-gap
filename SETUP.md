@@ -357,7 +357,12 @@ asymmetric DTW at its 3.0 px cutoff. Run against the published weights:
 | found within 3.0 px | 1454 |
 | recall | 0.9864 |
 | median aDTW | 0.50 px |
-| predictions emitted | 6852 |
+| predictions emitted | 6854 |
+| precision, whole frame | 0.2110 |
+| labels inside the labelled disc | 1416 |
+| found inside the disc | 1402 |
+| recall inside the disc | 0.9901 |
+| precision inside the disc | 0.7762 |
 
 Recall by density is 1.000 at 1x, 1.5x, 2x and 3x, then 0.968, 0.996, 0.989, 0.978 and
 0.987 at 4x, 6x, 8x, 10x and 13x. A median of 0.50 px sits exactly where the paper puts
@@ -365,9 +370,22 @@ human labelling accuracy, "the half-pixel level", so the harness agrees with the
 on the paper's own model. This is the reference any sweep-trained model is measured
 against.
 
-Recall is the usable score. Precision is not: the model emits 6852 predictions for 1474
-labels, and the humans plainly did not label every worm in every crop, so the ratio
-measures the labelling effort rather than the model.
+Precision has to be scored inside the region the annotators worked in or it is
+meaningless. 97 percent of the 13,232 clicked points fall in a disc of radius 72 px
+centred at (113, 116), which is a quarter of the 256 px frame, while detections are
+made over the whole of it. A correct detection outside that disc has no label it could
+ever match and is counted as a false positive. Restricting both sides to the disc takes
+precision from 0.211 to 0.776. It is still a lower bound, because an annotator marking a
+constant fraction of the worms inside the disc cannot be ruled out from these files.
+Recall is unaffected by the restriction, 0.9864 against 0.9901.
+
+The same script gives the same numbers on gene's GPU and on the laptop CPU, to every
+digit printed, so a score taken on one is comparable to a score taken on the other.
+
+An optional cap on how many candidates reach non-maximum suppression exists for
+scoring undertrained checkpoints, and it is off by default because it is not free. On
+the published weights a cap of 600 drops recall from 0.984 to 0.809 and 1200 to 0.977.
+Any run where it binds reports `cap_bound_on_clips`.
 
 One bug in this harness is worth recording because anyone rebuilding it will hit it.
 `asymmetric_dtw` walks the label points monotonically along the predicted centreline,

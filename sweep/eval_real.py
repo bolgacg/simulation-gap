@@ -223,29 +223,39 @@ def main(argv):
             "predictions": int(len(preds.w)), "claimed": claimed,
         }
 
-        if region and len(preds.w):
+        if region:
             # A label counts if its midpoint is in the disc, a prediction if the
             # midpoint of its centreline is. Same rule on both sides.
-            curves = np.asarray(preds.w[:, 1])
-            pred_in = inside(curves[:, curves.shape[1] // 2, :], region)
+            #
+            # The label side is counted whether or not this clip produced any
+            # predictions. Counting it only when predictions exist would shrink the
+            # denominator for exactly the models that find nothing, so a model that
+            # detects no worms at all would score an undefined recall instead of zero.
             lab_in = [bool(inside(lab[len(lab) // 2], region)) for lab in labels]
-
             rl = sum(lab_in)
-            rf = sum(
-                1 for (d, i), ok in zip(scored, lab_in)
-                if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
-            )
-            rc = len({
-                i for (d, i), ok in zip(scored, lab_in)
-                if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
-            })
+
+            if len(preds.w):
+                curves = np.asarray(preds.w[:, 1])
+                pred_in = inside(curves[:, curves.shape[1] // 2, :], region)
+                rf = sum(
+                    1 for (d, i), ok in zip(scored, lab_in)
+                    if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
+                )
+                rc = len({
+                    i for (d, i), ok in zip(scored, lab_in)
+                    if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
+                })
+                rp = int(pred_in.sum())
+            else:
+                rf = rc = rp = 0
+
             r_lab += rl
             r_found += rf
-            r_pred += int(pred_in.sum())
+            r_pred += rp
             r_claimed += rc
             sec.update({
                 "region_labels": rl, "region_found": rf,
-                "region_predictions": int(pred_in.sum()), "region_claimed": rc,
+                "region_predictions": rp, "region_claimed": rc,
             })
 
         per_section[name] = sec

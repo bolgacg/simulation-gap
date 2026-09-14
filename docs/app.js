@@ -739,9 +739,16 @@
       (base != null ? ', against ' + num(base) + ' for the weights published with the paper, which were trained ' +
         'far longer, see the note below' : '') + '. ' +
       (Math.abs(total) < 0.02
-        ? '<b>The curve is flat.</b> At this schedule the model is not learning enough for a difference ' +
-          'between configurations to mean anything, so the sweep below should be read as inconclusive ' +
-          'rather than as a set of findings about the simulator.'
+        ? '<b>The curve is flat, and the reason is not the schedule.</b> ' +
+          (dr.not_achievable_because
+            ? (function (t) { return /[.!?]$/.test(t) ? t : t + '.'; })(cap1(esc(dr.not_achievable_because))) + ' '
+            : '') +
+          'Training is working: the loss falls cleanly and the confidence term with it. What is missing ' +
+          'is budget, by about five orders of magnitude. The model has seen a few thousand clips against ' +
+          'the published run\'s hundreds of millions, and at that point it emits one candidate per clip ' +
+          'and detects nothing. So the sweep below is not inconclusive in the sense of a close result. ' +
+          'It was not attempted, and the page says so rather than drawing a flat line and calling it a ' +
+          'finding about the simulator.'
         : (gain > 0.01
             ? '<b>It is still climbing at the end.</b> The last step interval added ' + num(gain) +
               ', so these models are cut off well before they stop improving. That is the intended ' +
