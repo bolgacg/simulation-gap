@@ -197,10 +197,16 @@
       byAxis[c.axis] = byAxis[c.axis] || [];
       byAxis[c.axis].push(c.real_score);
     });
-    var ranked = Object.keys(byAxis).map(function (k) {
-      var v = byAxis[k];
-      return { k: k, spread: Math.max.apply(null, v) - Math.min.apply(null, v) };
-    }).sort(function (a, b) { return b.spread - a.spread; });
+    // An axis with one finished run has a spread of zero, which would read as "this
+    // setting does not matter" when the truth is that it was measured once. Those are
+    // left out of the comparison and counted, so the verdict can say how many.
+    var axesSeen = Object.keys(byAxis).length;
+    var ranked = Object.keys(byAxis).filter(function (k) { return byAxis[k].length > 1; })
+      .map(function (k) {
+        var v = byAxis[k];
+        return { k: k, spread: Math.max.apply(null, v) - Math.min.apply(null, v), n: v.length };
+      }).sort(function (a, b) { return b.spread - a.spread; });
+    var tooThin = axesSeen - ranked.length;
     var lbl = function (k) {
       var a = axes().filter(function (x) { return x.key === k; })[0];
       return (a && a.label ? a.label : k).toLowerCase();
@@ -217,7 +223,11 @@
                                : '<b>The settings appear to move the score by different amounts.</b> ');
           return head + 'Moving ' + lbl(ranked[0].k) + ' across its range changes the real score by ' +
             num(ranked[0].spread, 3) + ', while moving ' + lbl(ranked[ranked.length - 1].k) + ' changes it by ' +
-            num(ranked[ranked.length - 1].spread, 3) + '. ' + noiseClause(ranked);
+            num(ranked[ranked.length - 1].spread, 3) + '. ' +
+            (tooThin ? tooThin + (tooThin === 1 ? ' setting is' : ' settings are') +
+              ' left out of that comparison, because only one run of ' +
+              (tooThin === 1 ? 'it' : 'each') + ' finished and a single point has no range to move across. ' : '') +
+            noiseClause(ranked);
         })()
       : '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' + num(spread, 3) + '.</b> ' +
         noiseClause([{ k: state.axis, spread: spread }]);
