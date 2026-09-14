@@ -1,0 +1,75 @@
+{
+  "what": "defaults at 800 steps, reduced size, laptop CPU",
+  "model": "runs/defaults/seg4/a9b00d4d",
+  "clips_scored": 40,
+  "max_predictions": 800,
+  "note": "a cap of 800 candidates per clip is applied so the low thresholds can be scored at all; where cap_bound_on_clips is non-zero the recall is a lower bound and the prediction count is a floor.",
+  "rows": [
+    {
+      "score_threshold": 0.5,
+      "labels": 661,
+      "found": 0,
+      "recall": 0.0,
+      "predictions": 1092,
+      "precision": 0.0,
+      "predictions_per_label": 1.6520423600605143,
+      "median_adtw_px": 21.486792039826398,
+      "cap_bound_on_clips": 0
+    },
+    {
+      "score_threshold": 0.2,
+      "labels": 661,
+      "found": 0,
+      "recall": 0.0,
+      "predictions": 1228,
+      "precision": 0.0,
+      "predictions_per_label": 1.8577912254160363,
+      "median_adtw_px": 25.755897620796794,
+      "cap_bound_on_clips": 0
+    },
+    {
+      "score_threshold": 0.1,
+      "labels": 661,
+      "found": 1,
+      "recall": 0.0015128593040847202,
+      "predictions": 1264,
+      "precision": 0.0007911392405063291,
+      "predictions_per_label": 1.9122541603630863,
+      "median_adtw_px": 24.739181594451843,
+      "cap_bound_on_clips": 0
+    },
+    {
+      "score_threshold": 0.05,
+      "labels": 661,
+      "found": 7,
+      "recall": 0.01059001512859304,
+      "predictions": 1691,
+      "precision": 0.004139562389118865,
+      "predictions_per_label": 2.558245083207262,
+      "median_adtw_px": 24.15296466867234,
+      "cap_bound_on_clips": 0
+    },
+    {
+      "score_threshold": 0.02,
+      "labels": 661,
+      "found": 91,
+      "recall": 0.13767019667170954,
+      "predictions": 6453,
+      "precision": 0.013792034712536804,
+      "predictions_per_label": 9.7624810892587,
+      "median_adtw_px": 6.129497504679443,
+      "cap_bound_on_clips": 1
+    },
+    {
+      "score_threshold": 0.01,
+      "labels": 661,
+      "found": 144,
+      "recall": 0.2178517397881997,
+      "predictions": 13189,
+      "precision": 0.010614906361361741,
+      "predictions_per_label": 19.953101361573374,
+      "median_adtw_px": 4.286281545162069,
+      "cap_bound_on_clips": 40
+    }
+  ]
+}

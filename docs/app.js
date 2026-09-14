@@ -664,6 +664,45 @@
     }
   }
 
+  // A model that scores zero could be a model that finds nothing, or a model that finds
+  // things and is too unsure to say so. Those need different words, so the difference is
+  // measured by sweeping the confidence threshold rather than asserted.
+  function drawThreshold() {
+    var t = (D.defaults_run || {}).not_merely_a_threshold_artefact;
+    var text = $('#thresholdtext'), tbl = $('#thresholdtable');
+    if (!text || !tbl) return;
+    if (!t || !t.rows || !t.rows.length) {
+      text.textContent = '';
+      tbl.innerHTML = '';
+      return;
+    }
+    var best = t.rows.slice().sort(function (a, b) { return b.recall - a.recall; })[0];
+    var strict = t.rows.filter(function (r) { return r.score_threshold >= 0.5; })[0] || t.rows[0];
+    var bl = D.baseline_per_clip && D.baseline_per_clip.stated;
+    text.innerHTML = 'A score of zero has two readings, and they call for different words. The model ' +
+      'might find nothing, or it might find things and be too unsure to report them. Lowering the ' +
+      'confidence threshold separates those, so it was swept rather than argued about, on ' +
+      t.clips_scored + ' clips.' +
+      ' Recall only rises by carpet bombing. At a threshold of ' + best.score_threshold + ' it reaches ' +
+      num(best.recall, 3) + ', and it does that by emitting ' + num(best.predictions_per_label, 1) +
+      ' predictions for every labelled worm, for a precision of ' + num(best.precision, 3) + '. ' +
+      'The median distance never falls below ' + num(best.median_adtw_px, 2) + ' pixels' +
+      (bl && bl.median_adtw_px != null ? ', against ' + num(bl.median_adtw_px, 2) +
+        ' for the published weights' : '') + '. ' +
+      '<b>There is no setting at which this model is doing the task.</b> The zero is a zero.';
+
+    var head = '<thead><tr><th>Confidence threshold</th><th class="num">Recall</th>' +
+      '<th class="num">Precision</th><th class="num">Predictions per label</th>' +
+      '<th class="num">Median distance, px</th></tr></thead>';
+    tbl.innerHTML = head + '<tbody>' + t.rows.map(function (r) {
+      return '<tr><td>' + r.score_threshold + (r.score_threshold === 0.5 ? ' (the repository default)' : '') +
+        '</td><td class="num">' + num(r.recall, 4) + '</td><td class="num">' + num(r.precision, 4) +
+        '</td><td class="num">' + num(r.predictions_per_label, 1) +
+        (r.cap_bound_on_clips ? ' <span class="hint">capped</span>' : '') +
+        '</td><td class="num">' + num(r.median_adtw_px, 2) + '</td></tr>';
+    }).join('') + '</tbody>';
+  }
+
   // The scoring was wrong once, by a factor of two, and the way that was caught is a
   // better argument for trusting the rest of the page than the corrected number is.
   function drawFlip() {
@@ -1096,6 +1135,6 @@
       return;
     }
     redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawStatsOnly); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
-    drawDomain(); renderAxes(); drawSweep(); drawStatsOnly(); drawThesis(); fillProse(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
+    drawDomain(); renderAxes(); drawSweep(); drawStatsOnly(); drawThesis(); fillProse(); drawThreshold(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
   });
 })();

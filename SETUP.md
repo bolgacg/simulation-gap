@@ -415,16 +415,59 @@ eigenworms_transform.npy, experiment.json}`, which is the layout `eval_real.py` 
 startup with `CalledProcessError 128`. For the same reason the clone on gene needs its
 `.git` directory; an rsync that excludes it breaks training.
 
+### The gate: can anything trainable here detect a real worm?
+
+With gene gone, the defaults configuration was trained on the laptop CPU at a reduced
+size: 128 px frames, 30 worms, batch 4, 3.7 s per step, 800 steps in four resumed
+segments of 200, so each curve point cost one evaluation instead of a retrain.
+`kpoints`, `npca`, `latent_dim` and `n_suggestions` were kept at the published values
+so the model has the same shape as the released one, and it is scored at the full
+256 px, which a fully convolutional detector allows.
+
+| Steps | Recall on 40 real clips | Predictions | Median aDTW |
+|---|---|---|---|
+| 200 | 0.0000 | 40 | none within cutoff |
+| 400 | 0.0000 | 0 | none |
+| 600 | 0.0000 | 0 | none |
+| 800 | 0.0000 | 1101 | 23.01 px |
+
+Flat zero. The model is training, the loss falls from 114 at step 50 to 67 at step 100
+with the confidence term dropping from 12.1 to 1.30, but 800 steps at batch 4 is 3200
+clips against the published model's 3.1e8, five orders of magnitude short.
+
+The zero deserves one more check, because "scores zero at threshold 0.5" could hide a
+model that localises worms but is not confident about them. It does not. Sweeping the
+confidence threshold on the 800-step checkpoint:
+
+| Threshold | Recall | Precision | Predictions per label | Median aDTW |
+|---|---|---|---|---|
+| 0.5 | 0.0000 | 0.0000 | 1.7 | 21.49 px |
+| 0.2 | 0.0000 | 0.0000 | 1.9 | 25.76 px |
+| 0.1 | 0.0015 | 0.0008 | 1.9 | 24.74 px |
+| 0.05 | 0.0106 | 0.0041 | 2.6 | 24.15 px |
+| 0.02 | 0.1377 | 0.0138 | 9.8 | 6.13 px |
+| 0.01 | 0.2179 | 0.0106 | 20.0 | 4.29 px |
+
+Recall only rises by flooding the frame: at threshold 0.01 the model emits twenty
+predictions per label for a precision of 0.011, and the cap bound on all 40 clips so
+the real prediction count is higher still. The median distance never falls below
+4.29 px, against 0.50 px for the published weights. There is no operating point at
+which this model is doing the task.
+
+So the answer to the gate is that no training budget reachable in this session
+produces a model that detects a real worm, and the sweep's training half was therefore
+not run at all rather than run badly. The statistics half above stands on its own.
+
 ### Loose end
 
 gene went unreachable over Tailscale at about 22:45 on 14 Sep, right after an
-`eval_real.py` run on a 60-step checkpoint. The laptop's own internet was fine at the
-time (pypi answered 200), and twenty reconnection attempts over nine minutes all timed
-out. An undertrained model puts thousands of low-quality predictions through
-`non_max_suppression`, which is an O(n^2) numba loop with array copies on each pass, so
-that run was almost certainly thrashing the box. Two consequences for the sweep: raise
-`--score_threshold` when scoring early checkpoints, and expect the tether to drop.
+`eval_real.py` run on a 60-step checkpoint, and did not come back for the rest of the
+session despite retries across four hours. The laptop's own internet was fine
+throughout (pypi answered 200). An undertrained model puts thousands of low-quality
+predictions through `non_max_suppression`, an O(n^2) numba loop with array copies on
+each pass, so that run was almost certainly thrashing the box. `eval_real.py` now has
+a `--max_predictions` valve for exactly that case, off by default because it is not
+free: on the published weights a cap of 600 drops recall from 0.984 to 0.809.
 
-Not affected: every measurement above was taken and recorded before the outage. Not
-done: scoring a freshly trained checkpoint end to end, which is the one step still
-unverified, though the scoring path itself is validated on the published weights.
+What that cost: the sweep on real data. Everything that does not need a GPU was done
+instead, on this laptop, and nothing above is waiting on gene to be believed.

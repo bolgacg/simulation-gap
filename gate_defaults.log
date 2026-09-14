@@ -1,2 +1,9 @@
 defaults seg1 steps=200 trained_in=744s ckpt=/home/bolgac/projects/simulation-gap/runs/defaults/seg1/3e91078d
   steps=200 recall=0.0000 region_recall=0.0000 preds=40 median_adtw=none train_s=744 eval_s=47
+defaults seg2 steps=400 trained_in=727s ckpt=/home/bolgac/projects/simulation-gap/runs/defaults/seg2/65dffb7d
+  steps=400 recall=0.0000 region_recall=0.0000 preds=0 median_adtw=none train_s=727 eval_s=48
+defaults seg3 steps=600 trained_in=766s ckpt=/home/bolgac/projects/simulation-gap/runs/defaults/seg3/5e5cd34c
+  steps=600 recall=0.0000 region_recall=0.0000 preds=0 median_adtw=none train_s=766 eval_s=48
+defaults seg4 steps=800 trained_in=668s ckpt=/home/bolgac/projects/simulation-gap/runs/defaults/seg4/a9b00d4d
+  steps=800 recall=0.0000 region_recall=0.0000 preds=1101 median_adtw=23.01 train_s=668 eval_s=53
+defaults GATEDONE

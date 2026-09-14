@@ -82,10 +82,16 @@ def gate_curve():
     return points, points[-1]["real_score"]
 
 
+def threshold_rows():
+    f = DATA / "threshold_sweep.json"
+    return json.loads(f.read_text()) if f.is_file() else None
+
+
 def main():
     stats = json.loads((DATA / "stats_sweep.json").read_text())
     base = json.loads((DATA / "baseline_real_corrected.json").read_text())
     curve, last_score = gate_curve()
+    thr = threshold_rows()
 
     by_axis_default = {a["key"]: a["default_value"] for a in AXES}
 
@@ -177,15 +183,26 @@ def main():
                                     "and the same numbers.",
         },
         "training": {
-            "train_steps": None,
-            "batch_size": 16,
-            "nworms": None,
+            "train_steps": 800 if curve else None,
+            "batch_size": 4 if curve else None,
+            "nworms": "30" if curve else None,
             "identical_across_runs": None,
-            "chosen_because": "batch 16 was chosen from clean single-process benchmarks: "
-                              "0.43 s per step against 0.377 at batch 8 for half the work, "
-                              "and 0.638 at batch 24. Batch 32 fails with RESOURCE_EXHAUSTED "
-                              "on an idle card, confirmed twice. The step count and worm "
-                              "count set were never fixed because no training ran.",
+            "identical_across_runs_note": "only one configuration was ever trained, the "
+                              "defaults, so there is no second run for a schedule to be "
+                              "identical to. Set deliberately to null rather than true, "
+                              "because a true here would imply a comparison that does not "
+                              "exist.",
+            "where_it_ran": "this laptop's CPU, not gene's GPU",
+            "chosen_because": "this is the gate run, not the intended sweep schedule. The "
+                              "sweep was to be batch 16 on gene's GPU, chosen from clean "
+                              "single-process benchmarks at 0.43 s per step against 0.377 "
+                              "at batch 8 for half the work and 0.638 at batch 24, with "
+                              "batch 32 failing on memory. gene became unreachable before "
+                              "any of that ran, so the gate was moved to the laptop CPU at "
+                              "a reduced size: 128 px frames, 30 worms, batch 4, 3.7 s per "
+                              "step, 800 steps in four resumed segments of 200 so that each "
+                              "point on the learning curve cost one evaluation rather than "
+                              "a retrain.",
         },
         "baseline": {
             "what": "the weights published with the paper",
@@ -222,6 +239,21 @@ def main():
             "failed_because": None if curve else (
                 "not trained: gene unreachable over Tailscale from 22:45 on 14 Sep "
                 "through the rest of the session"),
+            "verdict": (
+                "flat at zero. Recall is 0.0000 at 200, 400, 600 and 800 steps. The loss "
+                "falls cleanly over that range, from 114 at step 50 to 67 at step 100, so "
+                "the model is training; it has simply not trained enough to detect a real "
+                "worm. This budget is below the threshold where the sweep would measure "
+                "anything, and the sweep was therefore not run."
+            ) if curve else None,
+            "not_merely_a_threshold_artefact": thr,
+            "not_achievable_because": (
+                "the machine holding the GPU became unreachable, so the schedule was not "
+                "chosen too short by judgement, it was bounded by what a laptop CPU could "
+                "do overnight. 800 steps at batch 4 is 3200 clips against the published "
+                "model's 3.1e8, five orders of magnitude short. The flat curve says this "
+                "budget is too small, not that the simulator settings do not matter."
+            ) if curve else None,
         },
         "axes": AXES,
         "configs": configs,
@@ -293,9 +325,14 @@ def main():
                            "so these statistics cannot rank it.",
         },
         "limits": [
-            "No model was trained, so every configuration's real_score is null and the "
-            "thesis test has no verdict. The machine holding the GPU went unreachable "
-            "before the sweep could run.",
+            "No swept configuration was trained, so every configuration's real_score is "
+            "null and the thesis test has no verdict. The machine holding the GPU went "
+            "unreachable before the sweep could run and did not return.",
+            "The one model that was trained, the defaults, ran on a laptop CPU at a "
+            "reduced size (128 px frames, 30 worms, batch 4) for 800 steps, and scores "
+            "0.0 because that is five orders of magnitude short of the published "
+            "training, not because the default settings are bad. Read it as a gate that "
+            "failed, not as a score for the repo's simulator.",
             "The baseline is the authors' published weights, trained for at least 3.1e8 "
             "clip-samples on eight A5000s. Anything trainable on one GTX 1060 in a night "
             "sees about 0.03 percent of that, so swept scores would not have been "
