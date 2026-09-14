@@ -50,6 +50,7 @@ OPTIONAL = {
     "training.batch_size": "the model card will print 'not recorded' for the schedule",
     "training.identical_across_runs": "the model card cannot state that runs share a schedule",
     "defaults_run.learning_curve": "act one will show no learning curve, so nothing on the page says whether the schedule was long enough to learn",
+    "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
 }
 
