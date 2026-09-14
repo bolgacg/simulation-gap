@@ -40,11 +40,16 @@ def main(argv):
     logging.info("simulator config: %s", FLAGS.simconfig or "repo defaults")
     logging.info("differs from repo defaults in: %s", json.dumps(diff) if diff else "nothing")
 
+    outdir = Path(FLAGS.checkpoint_dir).resolve()
     if FLAGS.save:
-        outdir = Path(FLAGS.checkpoint_dir)
         outdir.mkdir(parents=True, exist_ok=True)
         cfg.to_json(outdir / "simconfig.json")
+    FLAGS.checkpoint_dir = str(outdir)
 
+    # deeptangle/logger.py records the code version with `git rev-parse HEAD`, which
+    # reads the working directory, so training has to run from inside the clone.
+    # Every path the run touches is absolute by this point.
+    os.chdir(REPO)
     train.main(argv)
 
 

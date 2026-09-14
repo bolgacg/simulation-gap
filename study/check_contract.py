@@ -115,6 +115,11 @@ def main() -> int:
                 + ", ".join(unexplained[:6])
             )
 
+    ax = d.get("axes") or []
+    if ax and not any("default_value" in a for a in ax):
+        empty_optional.append(("axes[].default_value",
+                               "the sweep chart cannot mark the value the authors chose"))
+
     tr, _ = get(d, "training.identical_across_runs")
     if tr is False:
         notes.append(

@@ -275,6 +275,33 @@ def main():
     r2 = 1.0 - ss_res / ss_tot
     r = float(np.corrcoef(densities, means)[0, 1])
 
+    # The same fit on the clips themselves rather than on nine averaged points. Averaging
+    # first hides the clip-to-clip spread and inflates the fit: a reader told R squared is
+    # 0.97 will picture a tight line, and the line through the individual clips is not one.
+    clip_d, clip_n = [], []
+    for clip, rec in labels.items():
+        dn = density_of(clip)
+        if dn is None:
+            continue
+        clip_d.append(dn)
+        clip_n.append(len([sp for sp in rec["splines"] if len(sp["x"]) >= 2]))
+    cd, cn = np.array(clip_d, float), np.array(clip_n, float)
+    k_clip = float((cd * cn).sum() / (cd * cd).sum())
+    pred_clip = k_clip * cd
+    r2_clip = 1.0 - float(((cn - pred_clip) ** 2).sum()) / float(((cn - cn.mean()) ** 2).sum())
+    r_clip = float(np.corrcoef(cd, cn)[0, 1])
+
+    # Where the means do not rise monotonically with density. A reader can see it on the
+    # chart, so the prose should not describe a clean climb from lowest to highest.
+    inversions = []
+    for i in range(1, len(densities)):
+        if means[i] < means[i - 1]:
+            inversions.append({
+                "density": float(densities[i]), "mean_labels": round(float(means[i]), 2),
+                "previous_density": float(densities[i - 1]),
+                "previous_mean_labels": round(float(means[i - 1]), 2),
+            })
+
     total = sum(len(v["splines"]) for v in labels.values())
     exhaustive = r2 >= 0.9 and r >= 0.95
 
@@ -291,9 +318,21 @@ def main():
             str(d): {"clips": len(per_density[d]), "mean_labels": round(float(np.mean(per_density[d])), 2)}
             for d in densities
         },
+        "fit_is_on": "nine density means, not on the 178 individual clips",
         "slope_labels_per_unit_density": round(k, 3),
         "r_squared_through_origin": round(r2, 4),
         "pearson_r": round(r, 4),
+        "per_clip_fit": {
+            "clips": int(len(cd)),
+            "slope": round(k_clip, 3),
+            "r_squared_through_origin": round(r2_clip, 4),
+            "pearson_r": round(r_clip, 4),
+            "why_it_is_lower": (
+                "averaging each density to one point before fitting hides how much clips at the "
+                "same density differ. The slope is the same either way; the fit is not"
+            ),
+        },
+        "non_monotonic_steps": inversions,
         "verdict_exhaustive": bool(exhaustive),
         "verdict_exhaustive_caveat": (
             "proportionality is consistent with exhaustive labelling and rules out a fixed quota, "

@@ -179,6 +179,15 @@
         'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#2c4a6b' },
         'the settings the authors chose'));
     }
+    // Nothing on the chart said where the authors' own value sits, so a reader could not
+    // tell which point is the setting they chose and which are departures from it.
+    var axisDef = (axes().filter(function (a) { return a.key === state.axis; })[0] || {}).default_value;
+    if (axisDef != null && axisDef >= vmin && axisDef <= vmax) {
+      s.appendChild(el('line', { x1: X(axisDef), y1: P.t, x2: X(axisDef), y2: H - P.b,
+        stroke: '#c8860d', 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      s.appendChild(el('text', { x: X(axisDef) + 5, y: P.t + 11, 'font-family': "'IBM Plex Sans',sans-serif",
+        'font-size': 11, fill: '#c8860d' }, 'the value they chose'));
+    }
     var d = rows.map(function (r, i) { return (i ? 'L' : 'M') + X(r.axis_value).toFixed(1) + ' ' + Y(r.real_score).toFixed(1); }).join(' ');
     s.appendChild(el('path', { d: d, fill: 'none', stroke: '#b03a3a', 'stroke-width': 2.4 }));
     rows.forEach(function (r) {
@@ -524,6 +533,27 @@
           'can generate, so it is a limit on the whole approach rather than on this sweep.' + spread;
       }
     }
+    // Nothing on the page said whether the study had finished, so a reader could not tell
+    // a null result from an unfinished one, and there was no action at the end.
+    var st = $('#standing');
+    if (st) {
+      var cfgs = D.configs || [];
+      var done = cfgs.filter(function (c) { return c.real_score != null; }).length;
+      var when = String(D.generated_at || '').slice(0, 10);
+      st.innerHTML =
+        (done >= cfgs.length && cfgs.length
+          ? 'The sweep is finished. All ' + cfgs.length + ' configurations trained and scored'
+          : done + ' of ' + cfgs.length + ' configurations have trained and scored, so the sweep is ' +
+            'not finished and the last act should be read as provisional') +
+        (when ? ', as of ' + esc(when) + '.' : '.') +
+        ' Everything here is rebuilt by the scripts in the repository from the run output, so if you ' +
+        'disagree with a threshold or a choice of setting you can change it and rerun rather than ' +
+        'argue with the page. The two things I would do next, in order, are to repeat every ' +
+        'configuration rather than only the defaults, which is what would turn the ordering in act ' +
+        'two from a lead into a result, and to score inside the labelled region so precision becomes ' +
+        'a rate rather than a floor.';
+    }
+
     if (D.repo) {
       $('#src-repo').innerHTML = 'The detector and its simulator: <a href="' + esc(D.repo.url) + '">' +
         esc((D.repo.url || '').replace('https://github.com/', '')) + '</a>, commit ' + esc(D.repo.commit || '') +
@@ -732,13 +762,23 @@
     var first = keys[0], last = keys[keys.length - 1];
     var cs = lc.crossing_scaling, reg = lc.label_region;
     var parts = [];
-    parts.push('The clips come from videos at stated worm densities from ' + Number(first) + ' to ' +
-      Number(last) + ' times, and labels per clip rise in proportion to that density on a line through ' +
-      'the origin: ' + by[first].mean_labels + ' a clip at the lowest rising to ' + by[last].mean_labels +
-      ' at the highest, fitted at ' + lc.slope_labels_per_unit_density + ' per unit density with an R ' +
-      'squared of ' + lc.r_squared_through_origin + '. <b>That rules out a fixed quota per clip and ' +
-      'nothing else.</b> Someone marking a constant share of the worms produces the same line with a ' +
-      'smaller slope.');
+    var pc = lc.per_clip_fit, inv = (lc.non_monotonic_steps || [])[0];
+    parts.push('The clips come from videos at worm densities the dataset states as ' + Number(first) +
+      ' to ' + Number(last) + ' times a baseline concentration, and labels per clip rise in proportion ' +
+      'to that: ' + by[first].mean_labels + ' a clip at the lowest rising to ' + by[last].mean_labels +
+      ' at the highest, on a line through the origin at ' + lc.slope_labels_per_unit_density +
+      ' per unit density.' +
+      (pc ? ' Two fits, and the difference matters. Across the nine density averages the R squared is ' +
+        lc.r_squared_through_origin + ', which is the number worth being suspicious of, because ' +
+        'averaging first hides how much clips at the same density differ. Fitted on all ' + pc.clips +
+        ' clips individually the slope is the same, ' + pc.slope + ', and the R squared is ' +
+        pc.r_squared_through_origin + '. The proportionality is real; the tightness is an artefact of ' +
+        'averaging.' : '') +
+      (inv ? ' The climb is not even monotonic: the ' + inv.density + ' times bin averages ' +
+        inv.mean_labels + ' labels a clip against ' + inv.previous_mean_labels + ' at ' +
+        inv.previous_density + ' times, which you can see on the chart.' : '') +
+      ' <b>And all of it rules out a fixed quota per clip and nothing else.</b> Someone marking a ' +
+      'constant share of the worms produces the same line with a smaller slope.');
     if (cs) {
       parts.push('A second test, on how often labelled worms cross each other, was written to catch a ' +
         'labeller skipping the tangled ones. <b>It does not work and the page will not lean on it.</b> ' +

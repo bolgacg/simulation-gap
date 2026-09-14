@@ -41,9 +41,25 @@
    "mean_labels": 17.62
   }
  },
+ "fit_is_on": "nine density means, not on the 178 individual clips",
  "slope_labels_per_unit_density": 1.388,
  "r_squared_through_origin": 0.9744,
  "pearson_r": 0.9877,
+ "per_clip_fit": {
+  "clips": 178,
+  "slope": 1.389,
+  "r_squared_through_origin": 0.6186,
+  "pearson_r": 0.7873,
+  "why_it_is_lower": "averaging each density to one point before fitting hides how much clips at the same density differ. The slope is the same either way; the fit is not"
+ },
+ "non_monotonic_steps": [
+  {
+   "density": 8.0,
+   "mean_labels": 9.53,
+   "previous_density": 6.0,
+   "previous_mean_labels": 10.09
+  }
+ ],
  "verdict_exhaustive": true,
  "verdict_exhaustive_caveat": "proportionality is consistent with exhaustive labelling and rules out a fixed quota, but it cannot rule out a constant fraction, so precision is a lower bound",
  "what_it_means_for_the_page": "labelling tracks density closely enough to treat each crop as fully labelled, so an unmatched detection counts as a false positive and precision is reportable",

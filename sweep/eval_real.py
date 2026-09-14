@@ -39,6 +39,8 @@ flags.DEFINE_float("overlap_threshold", 0.5, "Latent-space NMS threshold.")
 flags.DEFINE_float("dtw_cutoff", 3.0, "aDTW distance in px below which a label counts as found.")
 flags.DEFINE_integer("centroid_gate", 60, "Skip prediction/label pairs further apart than this, px.")
 flags.DEFINE_string("preprocess", "clahe", "clahe (as detect.py) or percentile (as training).")
+flags.DEFINE_integer("limit", 0, "Score only the first N sections. 0 means all of them.")
+flags.DEFINE_string("only_density", None, "Restrict to one video density, for example 13x or 1_5x.")
 FLAGS = flags.FLAGS
 
 
@@ -76,9 +78,14 @@ def score_section(preds_w, labels):
             continue
         lc = b.mean(axis=0)
         near = np.nonzero(np.sum((centres - lc) ** 2, axis=1) < FLAGS.centroid_gate ** 2)[0]
+        # The model's head/tail orientation is arbitrary: train.py's loss takes the
+        # minimum over the label and its reverse. asymmetric_dtw walks the label
+        # monotonically along the prediction, so a reversed prediction scores as a
+        # miss unless the same flip is tried here.
+        b_flip = b[::-1].copy()
         best, best_i = np.inf, -1
         for i in near:
-            d = asymmetric_dtw(curves[i], b)
+            d = min(asymmetric_dtw(curves[i], b), asymmetric_dtw(curves[i], b_flip))
             if d < best:
                 best, best_i = d, int(i)
         out.append((best, best_i))
@@ -98,7 +105,15 @@ def main(argv):
     per_section = {}
     dists = []
 
-    for name, entry in sorted(labels_all.items()):
+    names = sorted(labels_all)
+    if FLAGS.only_density:
+        tag = f"WS0001-D3-{FLAGS.only_density}"
+        names = [n for n in names if n.startswith(tag)]
+    if FLAGS.limit:
+        names = names[: FLAGS.limit]
+
+    for name in names:
+        entry = labels_all[name]
         section = data / "frames" / name
         if not section.is_dir():
             logging.warning("missing frames for %s, skipping", name)
