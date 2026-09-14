@@ -331,7 +331,7 @@
       }
       return r;
     }
-    var a = ranks(rows.map(function (r) { return r.stat_distance_to_real; }));
+    var a = ranks(rows.map(function (r) { return statDist(r); }));
     var b = ranks(rows.map(function (r) { return r.real_score; }));
     var ma = a.reduce(function (s, v) { return s + v; }, 0) / n;
     var mb = b.reduce(function (s, v) { return s + v; }, 0) / n;
@@ -351,8 +351,8 @@
   // for every configuration and ranked. That half is a result on its own, and the most
   // useful thing on this page is a hazard it exposes before any model exists.
   function drawStatsOnly() {
-    var rows = (D.configs || []).filter(function (c) { return c.stat_distance_to_real != null; })
-      .slice().sort(function (a, b) { return a.stat_distance_to_real - b.stat_distance_to_real; });
+    var rows = (D.configs || []).filter(function (c) { return statDist(c) != null; })
+      .slice().sort(function (a, b) { return statDist(a) - statDist(b); });
     var text = $('#statsonly'), host = $('#statrankviz'), v = $('#vstats');
     if (!text) return;
     if (rows.length < 3) {
@@ -371,15 +371,19 @@
       'changes from the one before. The distance below is the average of those, in standard deviations ' +
       'of the spread across the ' + (D.real_data ? D.real_data.clips : '178') + ' real clips. Lower is ' +
       'closer to real footage.' +
+      (statDistIsMean() ? ' The whole sweep was run on ' +
+        word(((D.stats_noise_floor || {}).seeds || []).length || 3) +
+        ' draws of synthetic clips and each bar is the mean of them, because a single draw cannot ' +
+        'tell a difference between settings from the luck of which worms came out.' : '') +
       (dups ? ' ' + dups + ' of the ' + (D.configs || []).length + ' configurations hold the repository\'s ' +
         'own value on their own axis, so they are the defaults under another name and score identically; ' +
         'they are kept as reference points and marked.' : '');
 
     var narrow = isNarrow();
-    var W = narrow ? 400 : 860, rowH = narrow ? 22 : 20;
+    var W = narrow ? 400 : 860, rowH = narrow ? 24 : 22;
     var P = { l: narrow ? 118 : 150, r: narrow ? 46 : 60, t: 10, b: 18 };
     var H = P.t + P.b + rows.length * rowH;
-    var maxD = rows[rows.length - 1].stat_distance_to_real;
+    var maxD = statDist(rows[rows.length - 1]);
     var X = function (d) { return P.l + d / maxD * (W - P.l - P.r); };
     var s2 = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
       'aria-label': 'Configurations ranked by how closely their synthetic frames match real footage' });
@@ -389,14 +393,31 @@
       s2.appendChild(el('text', { x: P.l - 8, y: y + 4, 'text-anchor': 'end',
         'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 9.5 : 10.5,
         fill: isDef ? '#c8860d' : '#5b6470' }, shorten(r.name, narrow ? 15 : 22)));
-      s2.appendChild(el('line', { x1: P.l, y1: y, x2: X(r.stat_distance_to_real), y2: y,
-        stroke: isDef ? '#c8860d' : '#2c4a6b', 'stroke-width': 6, 'stroke-linecap': 'round' }));
-      s2.appendChild(el('text', { x: X(r.stat_distance_to_real) + 6, y: y + 4,
-        'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 9 : 10, fill: '#8b95a1' },
-        num(r.stat_distance_to_real, 2)));
+      var pc = nfOf(r.name);
+      var yBar = pc && pc.min != null ? y - 2.5 : y;
+      s2.appendChild(el('line', { x1: P.l, y1: yBar, x2: X(statDist(r)), y2: yBar,
+        stroke: isDef ? '#c8860d' : '#2c4a6b', 'stroke-width': 5.5, 'stroke-linecap': 'round' }));
+      // Where the same configuration landed on each individual draw, drawn clear of the
+      // bar rather than across it. Across it, the lower end hides inside the bar and the
+      // spread reads as one-sided, which is the opposite of what it is.
+      if (pc && pc.min != null && pc.max != null) {
+        var yw = y + 4.5;
+        s2.appendChild(el('line', { x1: X(pc.min), y1: yw, x2: X(pc.max), y2: yw,
+          stroke: '#8b95a1', 'stroke-width': 1 }));
+        [pc.min, pc.max].forEach(function (v2) {
+          s2.appendChild(el('line', { x1: X(v2), y1: yw - 2.5, x2: X(v2), y2: yw + 2.5,
+            stroke: '#8b95a1', 'stroke-width': 1 }));
+        });
+      }
+      s2.appendChild(el('text', { x: X(pc && pc.max != null ? Math.max(pc.max, statDist(r)) : statDist(r)) + 8,
+        y: y + 3.5, 'font-family': "'IBM Plex Mono',monospace",
+        'font-size': narrow ? 9 : 10, fill: '#8b95a1' }, num(statDist(r), 2)));
     });
     host.innerHTML = ''; host.appendChild(s2);
     caption('#statrankviz', 'Distance from real footage, no labels and no training used. Lower is closer. ' +
+      (statDistIsMean() ? 'Each bar is the mean over ' +
+        word(((D.stats_noise_floor || {}).seeds || []).length || 3) + ' draws of synthetic clips, and ' +
+        'the thin line through it spans what that same configuration scored on the individual draws. ' : '') +
       'Amber rows hold the repository\'s own value on their axis.');
 
     drawNoiseFloor();
@@ -440,6 +461,22 @@
   function word(k) {
     var w = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
     return (k >= 0 && k < w.length) ? w[k] : String(k);
+  }
+
+  // The statistics sweep was run on three seeds. Where the seed mean is present it is
+  // the number to rank and plot, because that is what the study output ranks on, and a
+  // chart drawn from a single seed beside a ranking computed from three would disagree
+  // with itself in a way only someone holding both files would notice.
+  function statDist(c) {
+    return c.stat_distance_mean_over_seeds != null
+      ? c.stat_distance_mean_over_seeds : c.stat_distance_to_real;
+  }
+  function nfOf(name) {
+    var pc = (D.stats_noise_floor || {}).per_config;
+    return pc ? pc[name] : null;
+  }
+  function statDistIsMean() {
+    return (D.configs || []).some(function (c) { return c.stat_distance_mean_over_seeds != null; });
   }
 
   function axisClaim(key) {
@@ -706,7 +743,7 @@
   function drawThesis() {
     var host = $('#thesisviz'); if (!host) return;
     var rows = (D.configs || []).filter(function (c) {
-      return c.real_score != null && c.stat_distance_to_real != null;
+      return c.real_score != null && statDist(c) != null;
     });
     if (rows.length < 3) {
       host.innerHTML = '<p class="small">Not enough finished runs yet to compare the two rankings.</p>';
@@ -717,7 +754,7 @@
     var narrow = isNarrow();
     var W = narrow ? 400 : 860, H = narrow ? 350 : 320;
     var P = narrow ? { l: 44, r: 14, t: 22, b: 50 } : { l: 70, r: 26, t: 22, b: 50 };
-    var xs = rows.map(function (r) { return r.stat_distance_to_real; });
+    var xs = rows.map(function (r) { return statDist(r); });
     var ys = rows.map(function (r) { return r.real_score; });
     var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
     var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
@@ -736,8 +773,8 @@
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, num(gx, 2)));
     });
     rows.forEach(function (r) {
-      s.appendChild(el('circle', { cx: X(r.stat_distance_to_real), cy: Y(r.real_score), r: 5, fill: '#2c4a6b' }));
-      s.appendChild(el('text', { x: X(r.stat_distance_to_real) + 8, y: Y(r.real_score) + 4,
+      s.appendChild(el('circle', { cx: X(statDist(r)), cy: Y(r.real_score), r: 5, fill: '#2c4a6b' }));
+      s.appendChild(el('text', { x: X(statDist(r)) + 8, y: Y(r.real_score) + 4,
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 9.5, fill: '#8b95a1' }, esc(r.name)));
     });
     s.appendChild(el('text', { x: 0, y: 12, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
