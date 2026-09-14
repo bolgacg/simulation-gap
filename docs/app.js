@@ -277,6 +277,42 @@
     }
   }
 
+  // The baseline is the number every other number on this page is compared against, so
+  // the browser adds it up again from the per-clip counts. It also shows the one subtlety
+  // in the arithmetic: a single detection can sit within three pixels of two different
+  // labelled worms, which is the case this detector exists for, so precision counts
+  // distinct detections that matched rather than labels that were matched.
+  function selfCheck() {
+    var host = $('#selfcheck'); if (!host) return;
+    var bp = D.baseline_per_clip;
+    if (!bp || !bp.sections) { host.textContent = 'The per-clip counts were not shipped, so nothing could be rechecked.'; return; }
+    var lab = 0, found = 0, pred = 0, claimed = 0;
+    Object.keys(bp.sections).forEach(function (k) {
+      var s = bp.sections[k];
+      lab += s.labels; found += s.found; pred += s.predictions; claimed += s.claimed;
+    });
+    var st = bp.stated || {};
+    var recall = lab ? found / lab : null;
+    var precision = pred ? claimed / pred : null;
+    var okCounts = st.labels === lab && st.found === found && st.predictions === pred;
+    var okRates = recall != null && precision != null &&
+      Math.abs(recall - st.recall) < 5e-4 && Math.abs(precision - st.precision) < 5e-4;
+    if (okCounts && okRates) {
+      host.innerHTML = '<b>Matched.</b> Adding up the ' + Object.keys(bp.sections).length +
+        ' clips here gives ' + found + ' of ' + lab + ' labelled worms found, a recall of ' +
+        num(recall) + ', and ' + claimed + ' of ' + pred + ' detections matching something, a precision of ' +
+        num(precision) + '. Both are what the study reported. Note that ' + found + ' labels were matched by ' +
+        claimed + ' detections: ' + (found - claimed) + ' of them sat within the cutoff of a detection that ' +
+        'also matched another worm, which is the overlapping case this detector was built for, so precision ' +
+        'counts distinct detections rather than labels.';
+    } else {
+      host.innerHTML = '<b>Did not match.</b> Adding up the clips gives ' + found + ' of ' + lab +
+        ' found and ' + claimed + ' of ' + pred + ' detections matching, which is a recall of ' + num(recall) +
+        ' and a precision of ' + num(precision) + ', against the ' + num(st.recall) + ' and ' + num(st.precision) +
+        ' this page reports. The totals and the parts disagree, and the parts are the evidence.';
+    }
+  }
+
   // Whether precision is a real false-alarm rate or an artefact of how much a human
   // bothered to click. The dataset says nothing either way, so it is measured: if
   // every worm in a crop is labelled, labels per crop must rise in proportion to the
@@ -407,6 +443,6 @@
         'Nothing here is measured. Run study/build_page_data.py against the real sweep output.');
       return;
     }
-    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawLabelCheck(); tour();
+    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); selfCheck(); drawLabelCheck(); tour();
   });
 })();
