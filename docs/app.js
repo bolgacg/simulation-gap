@@ -474,9 +474,20 @@
             : lenV.holds ? 'Worm length keeps its ordering.'
             : 'Worm length does not, and a finding of this page goes with it.',
             f.length_axis_NEEDED_a_bigger_pool || f.length_axis_DOES_NOT_clear_the_floor);
-      block(dragV.holds ? 'The axis that matters most holds, and barely moves.'
-            : 'The axis that matters most does not, and that costs the page the most.',
-            f.motion_axis_DOES_NOT_clear_the_floor);
+      // The sourced version opens by explaining why the combined distance cannot carry
+      // this axis, so rendering both says the same thing twice.
+      if (!f.alpha_must_be_sourced_to_the_motion_statistics) {
+        block('The axis that matters most cannot be read from the combined distance at all.',
+              f.motion_axis_DOES_NOT_clear_the_floor);
+      }
+      // Sourced to the three statistics a drag parameter could move, where the effect is
+      // large and correctly signed. Both halves have to be here: detectable in the right
+      // subset, and nowhere near enough to close the gap the same subset is complaining
+      // about. Either half alone reads as contradicting the paragraph above.
+      block('The axis that matters most cannot be read from the combined distance, and does not need to be.',
+            f.alpha_must_be_sourced_to_the_motion_statistics);
+      block('And nowhere near large enough, which is the whole problem.',
+            f.the_tuner_would_fix_motion_with_a_rendering_knob);
       block('The statistic set moves the ordering too.', f.ranking_depends_on_statistic_choice);
       v2.innerHTML = blocks.join('<br><br>');
     }
