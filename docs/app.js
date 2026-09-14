@@ -1084,10 +1084,10 @@
           (dr.not_achievable_because
             ? (function (t) { return /[.!?]$/.test(t) ? t : t + '.'; })(cap1(esc(dr.not_achievable_because))) + ' '
             : '') +
-          'Training is working: the loss falls cleanly and the confidence term with it. What is missing ' +
-          'is budget, by about five orders of magnitude. The model has seen a few thousand clips against ' +
-          'the published run\'s hundreds of millions, and at that point it emits one candidate per clip ' +
-          'and detects nothing. So the sweep below is not inconclusive in the sense of a close result. ' +
+          'Training is working: the loss falls cleanly and the confidence term with it. At this budget ' +
+          'the model emits one candidate per clip and detects nothing, which is what an untrained ' +
+          'detector does rather than what a broken one does. So the sweep below is not inconclusive ' +
+          'in the sense of a close result. ' +
           'It was not attempted, and the page says so rather than drawing a flat line and calling it a ' +
           'finding about the simulator.'
         : (gain > 0.01
