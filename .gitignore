@@ -21,3 +21,4 @@ __pycache__/
 # docs/data.js IS published, but only ever with real results: it is written by
 # study/build_page_data.py at publish time, never committed from a fixture.
 data/results.json
+docs/data.js
