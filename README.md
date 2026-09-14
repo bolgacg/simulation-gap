@@ -54,17 +54,31 @@ statistics did pick the right simulator, everyone would already be doing it.
 
 ## Two things settled by measurement rather than assumption
 
-**The evaluation set is labelled exhaustively, so precision means what it says.** The
-dataset ships no statement either way, and it matters: if a human labelled only some worms
-per clip, a detection with no label is not a false positive and precision would measure the
-labelling effort instead of the model. The clips come from videos at stated worm densities
-from one to thirteen times, so if every worm in a crop is labelled, labels per crop must
-rise in proportion to density on a line through the origin. Measured: 1.33 labels a clip at
-the lowest density rising to 17.62 at the highest, a proportional fit of 1.39 with an R
-squared of 0.974. A first attempt tried to find unlabelled worms directly by thresholding
-each frame, said only 23 percent of worm-shaped objects carried a label, and was thrown out:
-at these densities touching worms merge into one object and a faint mid-body breaks into
-several, so it measured the threshold rather than the labelling. The docstring says so.
+**How far the evaluation set can be trusted, and where the argument stops.** The dataset
+ships no statement about whether every worm is labelled, and it matters: an unlabelled worm
+counts against precision unfairly. Two tests, and the second exists because the first does
+not finish the job.
+
+Labels per clip rise in proportion to the stated worm density on a line through the origin,
+1.33 a clip at the lowest density rising to 17.62 at the highest, fitted at 1.39 per unit
+density with an R squared of 0.974. **That rules out a fixed quota per clip and nothing
+more.** Someone marking half the worms in every clip produces a line through the origin too,
+with half the slope and a fit just as good, and no geometry in these files separates them.
+
+So a second test, for the way a human actually labels partially, which is to skip the hard
+ones. The hard case here is a worm crossing another worm, and in a field of n labelled worms
+there are n(n-1)/2 pairs that could cross, so marking every worm regardless of difficulty
+makes crossings grow as roughly the square of the count. Measured exponent 2.31 against 2.0.
+The tangled worms are in the labels.
+
+A constant fraction still cannot be excluded, so **precision is reported as a lower bound**
+rather than as a false-alarm rate, and always with the confidence threshold it depends on.
+
+A third attempt was thrown out. It tried to find unlabelled worms directly by thresholding
+each frame at the intensity of its own labelled centrelines, and said only 23 percent of
+worm-shaped objects carried a label. At these densities touching worms merge into one object
+and a faint mid-body breaks into several, so it measured the threshold rather than the
+labelling. The docstring says so.
 
 **How much training the comparison needs.** Every model here is trained far below the
 published schedule, so the defaults configuration is scored at several points along its
