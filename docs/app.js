@@ -315,7 +315,7 @@
       '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
     $('#v1').innerHTML = b.real_score == null
       ? '<b>The baseline has not finished running.</b> Until it has, no number on this page should be read.'
-      : '<b>The scoring code reproduces the published model at ' + num(b.real_score) + ' on real footage.</b> ' +
+      : '<b>The published weights score ' + num(b.real_score) + ' on real footage.</b> ' +
         (b.paper_reports != null
           ? 'The paper reports ' + num(b.paper_reports) + ' on its own evaluation, so the two are close enough that the code below is measuring what it claims to. '
           : 'The paper does not report a directly comparable figure, so this is an internal reference rather than a reproduction. ') +
@@ -415,6 +415,8 @@
       s.appendChild(el('text', { x: X(p.steps), y: H - P.b + 15, 'text-anchor': 'middle',
         'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, n(p.steps)));
     });
+    s.appendChild(el('text', { x: W, y: H - 4, 'text-anchor': 'end',
+      'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11, fill: '#5b6470' }, 'training steps'));
     host.innerHTML = ''; host.appendChild(s);
     caption('#curveviz', 'What the default settings score on real footage as training goes on. ' +
       'Every configuration in act two is cut off at the last point on this line.');
