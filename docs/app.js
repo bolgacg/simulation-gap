@@ -591,7 +591,7 @@
     text.innerHTML = 'Scored along the way, the defaults configuration reaches ' + num(last.real_score) +
       ' after ' + n(last.steps) + ' steps' +
       (base != null ? ', against ' + num(base) + ' for the weights published with the paper, which were trained ' +
-        'roughly three hundred thousand steps across eight devices' : '') + '. ' +
+        'far longer, see the note below' : '') + '. ' +
       (Math.abs(total) < 0.02
         ? '<b>The curve is flat.</b> At this schedule the model is not learning enough for a difference ' +
           'between configurations to mean anything, so the sweep below should be read as inconclusive ' +
@@ -656,6 +656,11 @@
     var failed = cfgs.filter(function (c) { return c.real_score == null; });
     function miss(v, unit) { return v == null ? '<i>not recorded</i>' : esc(String(v)) + (unit || ''); }
     var rows = [
+      ['The published run, for comparison', 'Its own record sets 300,000 steps at batch 128 per device, ' +
+        'worm counts 5 to 250, seed 87, resumed from an earlier checkpoint. The released parameters carry ' +
+        '338,800 optimizer updates, read from the counters saved beside them, so at least 38,800 steps ' +
+        'happened before that run. How many devices it used is not recorded anywhere in the release, so ' +
+        'the number of frames it saw cannot be worked out from what was published.'],
       ['What is trained', 'The architecture published with ' +
         esc((D.repo && D.repo.url || '').replace('https://github.com/', '') || 'the repository') +
         ', from scratch, once per simulator configuration. No pretrained weights are used as a starting point, ' +
@@ -673,8 +678,10 @@
           'runs is the simulator setting.'
         : '<i>not recorded in the study output</i>'],
       ['Compared against', 'The defaults configuration retrained here on the same schedule, not the published ' +
-        'weights. The published weights were trained roughly three hundred thousand steps across eight devices, ' +
-        'so comparing against them would measure the schedule rather than the simulator.'],
+        'weights, which were trained far longer. Their own record sets 300,000 steps at batch 128 per device ' +
+        'and resumes from an earlier checkpoint, and the released parameters carry 338,800 optimizer updates, ' +
+        'so at least 38,800 came from before that run. The device count is not recorded anywhere in the ' +
+        'release. Comparing against them would measure the schedule rather than the simulator.'],
       // The description already carries the cutoff, so repeating it reads as two numbers
       // where there is one. It is only appended when the description does not mention it.
       ['Scored by', (function (w) { return /[.!?]$/.test(w) ? w : w + '.'; })(esc(m.what_it_measures || m.name || 'a matching metric')) +
