@@ -181,40 +181,55 @@ Measured with `--eval_interval=1`, which forces a device_get every step, because
 dispatches asynchronously and a run that never syncs times nothing. Per-step cost is
 `(t(40 steps) - t(10 steps)) / 30`, which cancels import, PCA and compile.
 
-At 256 by 256, 11 frames, kpoints 49, npca 12, nworms 50, all other flags default:
+Only one JAX process may touch this card at a time. XLA preallocates 75 percent of the
+6 GB, and a second process then fails with `INTERNAL: no supported devices found for
+platform CUDA`, which reads like a driver or compute-capability problem and is not one.
+An early round of my own measurements was ruined by two of my jobs overlapping; every
+number below was taken with the card otherwise idle, and the contended runs were thrown
+away.
 
-| batch | s per step | clips per second | outcome |
+At 256 by 256, 11 frames, kpoints 49, npca 12, all other flags default:
+
+| worms | batch | s per step | clips per second |
 |---|---|---|---|
-| 4 | 0.249 | 16.1 | fine |
-| 8 | 0.377 | 21.2 | fine |
-| 16 | 0.397 | 40.3 | fine |
-| 32 | n/a | n/a | out of memory, wanted 4.62 GiB |
+| 50 | 4 | 0.249 | 16 |
+| 50 | 8 | 0.377 | 21 |
+| 50 | 16 | 0.43 | 37 |
+| 50 | 24 | 0.638 | 38 |
+| 50 | 32 | out of memory, wanted 4.62 GiB | |
+| 250 | 16 | 0.636 | 25 |
+| 250 | 24 | 0.843 | 28 |
+| 5 to 250 mixed, all seven | 16 | 0.788 | 20 |
 
-Startup is 66 to 73 s for a single worm count: imports, the 100000-worm PCA, and one
+The batch-16 figure is the mean of three runs at 0.397, 0.448 and 0.433, so repeat
+noise is about 10 percent and the single-run numbers should not be read more finely
+than that. Throughput plateaus near 37 clips per second; batch 24 buys nothing over
+batch 16 and batch 32 does not fit.
+
+A separate probe at `--train_steps=2` confirms the memory envelope on an idle card:
+every combination of nworms in 5, 50, 100, 250 with batch in 4, 8, 16, 24 runs. Only
+batch 32 fails, and it fails at every worm count.
+
+Startup is 66 to 78 s for a single worm count: imports, the 100000-worm PCA, and one
 XLA compile. With the published run's seven worm counts (`--nworms=5,10,50,100,150,200,250`)
-startup is 193 s, because each worm count is a separate dataset and a separate compile.
-
-Batch 16 does not survive higher worm counts: nworms 100 and nworms 250 both die
-asking for another 1.2 to 1.4 GiB. The loss builds a distance matrix between every
-prediction and every label, 2048 predictions by nworms labels by 3 frames, so memory
-grows linearly in nworms. nworms 5 at batch 16 aborted during XLA compilation rather
-than on memory, a separate failure worth knowing about.
+startup is 187 to 193 s, because each worm count is a separate dataset and a separate
+compile.
 
 ### Sizing the sweep
 
 The published model is 300000 steps at batch 128 on eight A5000s, and it was itself
-resumed from an earlier checkpoint, so at least 3.1e8 clip-samples. gene does 40
-clips per second at its best setting, so the published budget is about 89 days on
-this card. That run cannot be reproduced here and the sweep must not pretend to.
+resumed from an earlier checkpoint, so at least 3.1e8 clip-samples. gene does 37 clips
+per second at its best setting, so the published budget is about 96 days on this card.
+That run cannot be reproduced here and the sweep must not pretend to.
 
-What fits: at batch 16, nworms 50, one run of N steps costs 0.397 N + 73 seconds.
+What fits: at batch 16, nworms 50, one run of N steps costs 0.43 N + 73 seconds.
 
 | steps | clips seen | wall clock per run | 12 configs |
 |---|---|---|---|
-| 2000 | 3.2e4 | 14 min | 2.8 h |
-| 5000 | 8.0e4 | 34 min | 6.8 h |
-| 10000 | 1.6e5 | 67 min | 13.4 h |
-| 20000 | 3.2e5 | 2.2 h | 27 h |
+| 2000 | 3.2e4 | 15 min | 3.0 h |
+| 5000 | 8.0e4 | 37 min | 7.4 h |
+| 10000 | 1.6e5 | 73 min | 14.6 h |
+| 20000 | 3.2e5 | 2.4 h | 29 h |
 
 A 5000-step run sees 0.026 percent of the published sample budget. Whether a model
 trained that briefly ranks simulator settings the same way a fully trained one would
@@ -243,3 +258,68 @@ So on the two axes that are cheap to measure without labels, matching real stati
 would move the simulator to shorter and thinner worms than the repo ships. That is a
 real, testable prediction for the study, and the knobs to make it are the ones the
 repo does not expose.
+
+### The real-data score, validated against the published model
+
+`sweep/eval_real.py` scores a checkpoint on all 178 labelled clips with the paper's own
+asymmetric DTW at its 3.0 px cutoff. Run against the published weights:
+
+| | Result |
+|---|---|
+| labels | 1474 |
+| found within 3.0 px | 1454 |
+| recall | 0.9864 |
+| median aDTW | 0.50 px |
+| predictions emitted | 6852 |
+
+Recall by density is 1.000 at 1x, 1.5x, 2x and 3x, then 0.968, 0.996, 0.989, 0.978 and
+0.987 at 4x, 6x, 8x, 10x and 13x. A median of 0.50 px sits exactly where the paper puts
+human labelling accuracy, "the half-pixel level", so the harness agrees with the paper
+on the paper's own model. This is the reference any sweep-trained model is measured
+against.
+
+Recall is the usable score. Precision is not: the model emits 6852 predictions for 1474
+labels, and the humans plainly did not label every worm in every crop, so the ratio
+measures the labelling effort rather than the model.
+
+One bug in this harness is worth recording because anyone rebuilding it will hit it.
+`asymmetric_dtw` walks the label points monotonically along the predicted centreline,
+so it is not invariant to head/tail order, and the model's orientation is arbitrary:
+train.py's own loss takes the minimum over the label and its reverse. Scoring without
+that flip gave a flat recall of 0.509 across every density, from 1.3 worms per clip to
+17.6, which is the tell. A genuine detection limit falls off with density; a coin flip
+does not. With the flip, 0.509 becomes 0.986.
+
+### Full pipeline, proven end to end
+
+```
+python sweep_run.py --simconfig=configs/L_25_35.json --train_steps=60 \
+    --eval_interval=10 --warmup=5 --nworms=50 --batch_size=16 --save \
+    --checkpoint_dir=/home/bo/simulation-gap/runs/L_25_35
+```
+
+logs `differs from repo defaults in: {"L_low": 25, "L_high": 35}`, trains with the loss
+falling from 124 to 57 over 60 steps, and writes
+`runs/L_25_35/simconfig.json` plus `runs/L_25_35/<uid>/{arrays.npy, tree.pkl,
+eigenworms_transform.npy, experiment.json}`, which is the layout `eval_real.py` and
+`dt.load_model` expect.
+
+`sweep_run.py` chdirs into the clone before calling `train.main`, after resolving
+`--simconfig` and `--checkpoint_dir` to absolute paths. Without that, `logger.py`'s
+`git rev-parse HEAD` runs in whatever directory you launched from and the run dies at
+startup with `CalledProcessError 128`. For the same reason the clone on gene needs its
+`.git` directory; an rsync that excludes it breaks training.
+
+### Loose end
+
+gene went unreachable over Tailscale at about 22:45 on 14 Sep, right after an
+`eval_real.py` run on a 60-step checkpoint. The laptop's own internet was fine at the
+time (pypi answered 200), and twenty reconnection attempts over nine minutes all timed
+out. An undertrained model puts thousands of low-quality predictions through
+`non_max_suppression`, which is an O(n^2) numba loop with array copies on each pass, so
+that run was almost certainly thrashing the box. Two consequences for the sweep: raise
+`--score_threshold` when scoring early checkpoints, and expect the tether to drop.
+
+Not affected: every measurement above was taken and recorded before the outage. Not
+done: scoring a freshly trained checkpoint end to end, which is the one step still
+unverified, though the scoring path itself is validated on the published weights.

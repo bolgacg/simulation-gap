@@ -142,8 +142,21 @@
     var rows = (D.configs || []).filter(function (c) { return c.axis === state.axis && c.real_score != null; })
       .sort(function (a, b) { return (a.axis_value || 0) - (b.axis_value || 0); });
     if (!rows.length) {
+      // An empty chart with an empty verdict box under it reads as broken rather than
+      // as unfinished, so the act says which it is and what it is waiting for.
+      var all = (D.configs || []);
+      var anyDone = all.filter(function (c) { return c.real_score != null; }).length;
       host.innerHTML = '<p class="small">No finished runs on this setting yet.</p>';
       $('#sweeplegend').innerHTML = '';
+      $('#v2').innerHTML = anyDone
+        ? '<b>Nothing has finished on this setting yet.</b> ' + anyDone + ' of ' + all.length +
+          ' configurations have trained and scored, and none of them is this one. Pick another setting, ' +
+          'or read the last section, which says where the sweep stands.'
+        : '<b>The sweep has not run yet.</b> The harness, the ' + all.length + ' configurations and the ' +
+          'scoring are built and in the repository; what is missing is the training, which needs a GPU ' +
+          'for several hours. Until it runs this act is empty, and the page says so rather than showing ' +
+          'a chart of nothing. What is measured already sits in act one and in the method section below, ' +
+          'and the strongest of it is about the evaluation set rather than about the simulator.';
       return;
     }
     var axis = axes().filter(function (a) { return a.key === state.axis; })[0] || { label: state.axis };
@@ -450,10 +463,19 @@
   function fillProse() {
     var b = D.baseline || {}, dr = D.defaults_run || {}, m = D.metric || {}, rd = D.real_data || {}, hw = D.hardware || {};
     $('#byrepo').textContent = (D.repo && D.repo.url ? D.repo.url.replace('https://github.com/', '') : 'deeptangle');
+    // The dek must not describe a sweep that has not run. It states what has been done.
+    var cfgAll = D.configs || [];
+    var cfgDone = cfgAll.filter(function (c) { return c.real_score != null; }).length;
     $('#dek').innerHTML =
       'The detector this page takes apart was trained entirely on simulated worms, by the group that wrote both. ' +
-      '<strong>Changing one simulator setting at a time and retraining shows which of them the result actually depends on</strong>, ' +
-      'scored against ' + (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') + '. ' +
+      (cfgDone
+        ? '<strong>Changing one simulator setting at a time and retraining shows which of them the result ' +
+          'actually depends on</strong>, scored against ' +
+          (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') + '. '
+        : '<strong>The sweep that would show which of its settings the result depends on is built and has ' +
+          'not yet run</strong>, so what is here is what was measured first: the published model on ' +
+          (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') +
+          ', and two things about that labelled set which change what any score on it means. ') +
       'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all. ' +
       // The strongest fact against this page's own premise, computed, in the first screen.
       (function () {
