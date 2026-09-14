@@ -206,10 +206,55 @@
       return (a && a.label ? a.label : k).toLowerCase();
     };
     $('#v2').innerHTML = ranked.length > 1
-      ? '<b>The settings do not matter equally.</b> Moving ' + lbl(ranked[0].k) + ' across its range changes the real score by ' +
-        num(ranked[0].spread, 3) + ', while moving ' + lbl(ranked[ranked.length - 1].k) + ' changes it by ' +
-        num(ranked[ranked.length - 1].spread, 3) + '. On this evidence a laboratory tuning this simulator should spend its time on the first and leave the last alone.'
-      : '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' + num(spread, 3) + '.</b>';
+      ? (function () {
+          // The headline cannot assert that settings differ while the sentence after it
+          // says nothing clears the noise floor. So the floor decides the headline too.
+          var nf = noiseFloor();
+          var clears = nf ? ranked[0].spread > nf.spread * 2 : null;
+          var head = clears === false
+            ? '<b>No setting here is shown to matter more than another.</b> '
+            : (clears === true ? '<b>The settings do not matter equally.</b> '
+                               : '<b>The settings appear to move the score by different amounts.</b> ');
+          return head + 'Moving ' + lbl(ranked[0].k) + ' across its range changes the real score by ' +
+            num(ranked[0].spread, 3) + ', while moving ' + lbl(ranked[ranked.length - 1].k) + ' changes it by ' +
+            num(ranked[ranked.length - 1].spread, 3) + '. ' + noiseClause(ranked);
+        })()
+      : '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' + num(spread, 3) + '.</b> ' +
+        noiseClause([{ k: state.axis, spread: spread }]);
+  }
+
+  // A difference between two configurations means nothing until you know how much the
+  // same configuration moves when you only change the seed. The page will not recommend
+  // where to spend tuning effort without that number, because its own limits say a
+  // single unrepeated run cannot tell a real difference from run-to-run variation.
+  function noiseFloor() {
+    var reps = (D.defaults_run || {}).repeats;
+    if (!reps || reps.length < 2) return null;
+    var v = reps.map(function (r) { return r.real_score; }).filter(function (x) { return x != null; });
+    if (v.length < 2) return null;
+    return { n: v.length, spread: Math.max.apply(null, v) - Math.min.apply(null, v) };
+  }
+
+  function noiseClause(ranked) {
+    var nf = noiseFloor();
+    if (!nf) {
+      return 'How much of that is the setting and how much is chance cannot be said from this page: ' +
+        'no configuration was trained twice, so there is no measurement of how far the same settings ' +
+        'move when only the seed changes. Read the ordering as a lead to follow, not as a finding.';
+    }
+    var top = ranked[0].spread, bottom = ranked[ranked.length - 1].spread;
+    var clause = 'Training the same configuration ' + nf.n + ' times with different seeds moved the score by ' +
+      num(nf.spread, 3) + ', so that is the floor below which a difference here is not a difference. ';
+    if (top > nf.spread * 2) {
+      clause += 'The first is comfortably above it' +
+        (bottom <= nf.spread ? ' and the last is not above it at all, so a laboratory tuning this simulator should spend its time on the first and leave the last alone.'
+                             : ', so it is worth tuning; the smaller effects are closer to the floor and should be treated with more caution.');
+    } else {
+      clause += '<b>Nothing here clears that floor by a comfortable margin</b>, so this sweep does not ' +
+        'establish that any of these settings matters more than the others, and the honest reading is ' +
+        'that a longer schedule or repeated runs would be needed before advising anyone where to tune.';
+    }
+    return clause;
   }
 
   function drawThesis() {
