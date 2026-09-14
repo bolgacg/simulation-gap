@@ -515,7 +515,9 @@
         'with a median error of half a pixel.</b> ' +
         (b.paper_reports != null
           ? 'The paper reports ' + num(b.paper_reports) + ' on its own evaluation, so the two are close enough that the code below is measuring what it claims to. '
-          : 'The paper does not report a directly comparable figure, so this is an internal reference rather than a reproduction. ') +
+          : 'The paper reports no directly comparable recall, so that figure is an internal reference. ' +
+            'The median error is a check against it though: the paper puts human labelling accuracy at ' +
+            'the half-pixel level, and that is where this lands. ') +
         (dr.real_score != null
           ? 'Retraining with the authors\' own settings at the shorter schedule used here reaches ' + num(dr.real_score) +
             ', and that offset, not the published number, is what every swept configuration should be compared against.'
