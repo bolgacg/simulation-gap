@@ -14,6 +14,9 @@
    "2": 0.9742187997516659
   },
   "range": 0.1504800235376922,
+  "per_config_sd": 0.09300467658677332,
+  "per_config_sd_after_removing_the_shift": 0.052648811782988705,
+  "common_random_numbers": "the pairing is the simulator's own design rather than a choice made here. synthetic_pool builds one key from the seed and the replacement sampler splits it in the same fixed order whatever the configuration holds, so a configuration changes the bounds of a draw and never the draw itself. The same variate becomes worm i under every configuration, in the same place and moving the same way, differing only in the length or thickness or drag it is drawn with. Anyone rebuilding this has to hold the seed fixed across configurations: vary it per configuration and the pairing is gone and the effect disappears into the draw.",
   "what_it_shows": "the draw moves every configuration together. The spread of a single configuration across draws is therefore mostly a shift shared by all of them, and differencing two configurations inside one draw removes it. The same seed generates both pools, so the comparison is paired."
  },
  "identical_configurations": {

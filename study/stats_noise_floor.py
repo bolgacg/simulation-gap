@@ -93,9 +93,23 @@ def main() -> int:
     # comparison made inside one draw. This is why the axis tests below difference
     # against the repository's value WITHIN each draw rather than across draws.
     field = {str(s): st.mean([runs[s][n] for n in names]) for s in seeds}
+    # How much of a configuration's spread across draws is the shared shift: take the
+    # spread again after subtracting each draw's own field mean and see what is left.
+    raw_sd = st.mean([st.pstdev([runs[s][n] for s in seeds]) for n in names])
+    centred_sd = st.mean([st.pstdev([runs[s][n] - field[str(s)] for s in seeds]) for n in names])
     common_shift = {
         "mean_distance_by_seed": field,
         "range": max(field.values()) - min(field.values()),
+        "per_config_sd": raw_sd,
+        "per_config_sd_after_removing_the_shift": centred_sd,
+        "common_random_numbers": "the pairing is the simulator's own design rather than a "
+            "choice made here. synthetic_pool builds one key from the seed and the replacement "
+            "sampler splits it in the same fixed order whatever the configuration holds, so a "
+            "configuration changes the bounds of a draw and never the draw itself. The same "
+            "variate becomes worm i under every configuration, in the same place and moving the "
+            "same way, differing only in the length or thickness or drag it is drawn with. "
+            "Anyone rebuilding this has to hold the seed fixed across configurations: vary it "
+            "per configuration and the pairing is gone and the effect disappears into the draw.",
         "what_it_shows": "the draw moves every configuration together. The spread of a single "
                          "configuration across draws is therefore mostly a shift shared by all "
                          "of them, and differencing two configurations inside one draw removes "

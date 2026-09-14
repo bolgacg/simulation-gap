@@ -508,6 +508,11 @@ def main():
             "inside a draw; on that comparison the noise and body radius axes keep their "
             "ordering in all three draws and worm length and drag anisotropy do not, so no "
             "ordering on those two is reportable.",
+            "The repeats redraw the synthetic side only. Every draw is scored against the "
+            "same 178 real clips, so nothing here measures error in the real sample. That "
+            "error is common to every configuration and cancels in a comparison made inside "
+            "a draw, the same way the draw's own shift does, but it means these distances are "
+            "not confidence intervals on the real world.",
             "Each configuration's statistics come from a pool of only ten synthetic clips, "
             "which is what makes the noise floor as large as it is. Generating more clips "
             "per configuration would shrink it and is the right fix; it was not done here "

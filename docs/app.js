@@ -471,6 +471,12 @@
     return c.stat_distance_mean_over_seeds != null
       ? c.stat_distance_mean_over_seeds : c.stat_distance_to_real;
   }
+  // The tightest paired scatter on the axis that carries the page's warning.
+  function strongestScatter(nf) {
+    var c = (nf.axis_claims || []).filter(function (x) { return x.axis === 'body_radius'; })[0];
+    return c && c.strongest_gap ? c.strongest_gap.sd_of_paired_difference : null;
+  }
+
   function nfOf(name) {
     var pc = (D.stats_noise_floor || {}).per_config;
     return pc ? pc[name] : null;
@@ -517,8 +523,11 @@
       (seeds.length > 1 ? word(seeds.length) : 'several') + ' times with the worms redrawn and nothing ' +
       'else changed. ' +
       (shift ? 'The draw moves the whole field together, by ' + num(shift.range, 2) +
-        ' in the mean distance across all sixteen configurations, so settings are compared inside a ' +
-        'draw and the differences averaged afterwards rather than compared across draws. ' : '') +
+        ' in the mean distance across all sixteen configurations. Subtract each draw\'s own field ' +
+        'mean and a configuration\'s spread across draws falls from ' + num(shift.per_config_sd, 3) +
+        ' to ' + num(shift.per_config_sd_after_removing_the_shift, 3) + ', so most of it is that ' +
+        'shared shift and not the setting. Settings are therefore compared inside a draw and the ' +
+        'differences averaged afterwards. ' : '') +
       (lost
         ? 'On that comparison ' + word(kept) + ' of the ' + word(kept + lost) + ' axes keep their ' +
           'ordering every time and ' + word(lost) + ' do not, and one of the findings this page ' +
@@ -537,6 +546,22 @@
     }).join('');
     tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
 
+    // Why the paired comparison is the one the design asks for, rather than a choice
+    // made here to get a better answer. This is the part a reader who knows the code
+    // can check, so it names what to look at.
+    var why = $('#noisefloorwhy');
+    if (why) {
+      why.innerHTML = shift && shift.common_random_numbers
+        ? '<b>Why the comparison is made inside a draw.</b> ' +
+          cap1(esc(shift.common_random_numbers)) +
+          ((nf.axis_claims || []).length && strongestScatter(nf) != null
+            ? ' That is common random numbers, the standard way to compare settings on a ' +
+              'shared draw, and it is why the scatter on the radius difference is ' +
+              num(strongestScatter(nf), 3) + ' while one configuration on its own moves by ' +
+              num(shift.per_config_sd, 3) + ' between draws.'
+            : '')
+        : '';
+    }
     if (note) {
       var dup = nf.identical_configurations;
       note.textContent = 'Position means where the repository\'s own value ranks among the settings ' +
