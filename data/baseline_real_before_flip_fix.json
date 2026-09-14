@@ -1,0 +1,1081 @@
+{
+  "model": "data/weights",
+  "preprocess": "clahe",
+  "dtw_cutoff": 3.0,
+  "labels": 1474,
+  "found": 751,
+  "recall": 0.5094979647218453,
+  "predictions": 6847,
+  "precision": 0.10909887541989192,
+  "median_adtw_px": 1.5434645380374823,
+  "per_section": {
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00024_000": {
+      "labels": 21,
+      "found": 13,
+      "predictions": 105,
+      "claimed": 12
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00024_001": {
+      "labels": 23,
+      "found": 13,
+      "predictions": 96,
+      "claimed": 13
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00050_000": {
+      "labels": 17,
+      "found": 12,
+      "predictions": 88,
+      "claimed": 12
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00074_000": {
+      "labels": 6,
+      "found": 3,
+      "predictions": 25,
+      "claimed": 3
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00074_001": {
+      "labels": 16,
+      "found": 8,
+      "predictions": 60,
+      "claimed": 8
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00138_000": {
+      "labels": 24,
+      "found": 13,
+      "predictions": 94,
+      "claimed": 13
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00138_001": {
+      "labels": 23,
+      "found": 8,
+      "predictions": 98,
+      "claimed": 8
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00138_002": {
+      "labels": 10,
+      "found": 4,
+      "predictions": 41,
+      "claimed": 4
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00138_003": {
+      "labels": 7,
+      "found": 3,
+      "predictions": 44,
+      "claimed": 3
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00166_000": {
+      "labels": 15,
+      "found": 10,
+      "predictions": 68,
+      "claimed": 10
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00197_000": {
+      "labels": 5,
+      "found": 1,
+      "predictions": 38,
+      "claimed": 1
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00197_001": {
+      "labels": 17,
+      "found": 15,
+      "predictions": 40,
+      "claimed": 15
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00353_000": {
+      "labels": 6,
+      "found": 2,
+      "predictions": 33,
+      "claimed": 2
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00353_001": {
+      "labels": 15,
+      "found": 9,
+      "predictions": 59,
+      "claimed": 9
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00389_000": {
+      "labels": 16,
+      "found": 8,
+      "predictions": 53,
+      "claimed": 8
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00502_000": {
+      "labels": 19,
+      "found": 7,
+      "predictions": 118,
+      "claimed": 7
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00502_001": {
+      "labels": 16,
+      "found": 6,
+      "predictions": 58,
+      "claimed": 6
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00502_002": {
+      "labels": 12,
+      "found": 5,
+      "predictions": 77,
+      "claimed": 5
+    },
+    "WS0001-D3-10x_2022-02-14-152413-0000.avi_00502_003": {
+      "labels": 6,
+      "found": 3,
+      "predictions": 43,
+      "claimed": 3
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00045_000": {
+      "labels": 20,
+      "found": 6,
+      "predictions": 71,
+      "claimed": 6
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00045_001": {
+      "labels": 10,
+      "found": 6,
+      "predictions": 66,
+      "claimed": 6
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00045_002": {
+      "labels": 20,
+      "found": 11,
+      "predictions": 91,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00105_000": {
+      "labels": 19,
+      "found": 10,
+      "predictions": 93,
+      "claimed": 10
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00105_001": {
+      "labels": 17,
+      "found": 10,
+      "predictions": 76,
+      "claimed": 10
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00105_002": {
+      "labels": 21,
+      "found": 11,
+      "predictions": 122,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00105_003": {
+      "labels": 30,
+      "found": 12,
+      "predictions": 103,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00105_004": {
+      "labels": 27,
+      "found": 15,
+      "predictions": 101,
+      "claimed": 15
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00169_000": {
+      "labels": 20,
+      "found": 11,
+      "predictions": 82,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00169_001": {
+      "labels": 18,
+      "found": 7,
+      "predictions": 83,
+      "claimed": 7
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00169_002": {
+      "labels": 10,
+      "found": 4,
+      "predictions": 61,
+      "claimed": 4
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00169_003": {
+      "labels": 24,
+      "found": 14,
+      "predictions": 81,
+      "claimed": 14
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00180_000": {
+      "labels": 19,
+      "found": 9,
+      "predictions": 74,
+      "claimed": 9
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00180_001": {
+      "labels": 23,
+      "found": 12,
+      "predictions": 96,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00180_002": {
+      "labels": 10,
+      "found": 2,
+      "predictions": 59,
+      "claimed": 2
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00180_003": {
+      "labels": 16,
+      "found": 11,
+      "predictions": 74,
+      "claimed": 11
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00180_004": {
+      "labels": 15,
+      "found": 4,
+      "predictions": 69,
+      "claimed": 4
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00240_000": {
+      "labels": 26,
+      "found": 14,
+      "predictions": 102,
+      "claimed": 14
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00252_000": {
+      "labels": 10,
+      "found": 5,
+      "predictions": 71,
+      "claimed": 5
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00252_001": {
+      "labels": 16,
+      "found": 8,
+      "predictions": 67,
+      "claimed": 8
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00416_000": {
+      "labels": 16,
+      "found": 6,
+      "predictions": 67,
+      "claimed": 6
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00494_000": {
+      "labels": 16,
+      "found": 14,
+      "predictions": 104,
+      "claimed": 14
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00494_001": {
+      "labels": 15,
+      "found": 12,
+      "predictions": 66,
+      "claimed": 12
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00534_000": {
+      "labels": 16,
+      "found": 10,
+      "predictions": 67,
+      "claimed": 10
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00534_001": {
+      "labels": 11,
+      "found": 5,
+      "predictions": 67,
+      "claimed": 4
+    },
+    "WS0001-D3-13x_2022-02-14-152945-0000.avi_00534_002": {
+      "labels": 13,
+      "found": 4,
+      "predictions": 75,
+      "claimed": 4
+    },
+    "WS0001-D3-1_5x-0000.avi_00030_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 8,
+      "claimed": 1
+    },
+    "WS0001-D3-1_5x-0000.avi_00081_000": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 0,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00081_001": {
+      "labels": 6,
+      "found": 3,
+      "predictions": 19,
+      "claimed": 3
+    },
+    "WS0001-D3-1_5x-0000.avi_00112_000": {
+      "labels": 3,
+      "found": 3,
+      "predictions": 11,
+      "claimed": 3
+    },
+    "WS0001-D3-1_5x-0000.avi_00112_001": {
+      "labels": 2,
+      "found": 0,
+      "predictions": 6,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00112_002": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 10,
+      "claimed": 1
+    },
+    "WS0001-D3-1_5x-0000.avi_00112_003": {
+      "labels": 7,
+      "found": 3,
+      "predictions": 15,
+      "claimed": 3
+    },
+    "WS0001-D3-1_5x-0000.avi_00131_000": {
+      "labels": 4,
+      "found": 0,
+      "predictions": 19,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00224_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 6,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00224_001": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 8,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00224_002": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 19,
+      "claimed": 2
+    },
+    "WS0001-D3-1_5x-0000.avi_00280_000": {
+      "labels": 4,
+      "found": 3,
+      "predictions": 16,
+      "claimed": 3
+    },
+    "WS0001-D3-1_5x-0000.avi_00280_001": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 3,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00280_002": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 4,
+      "claimed": 0
+    },
+    "WS0001-D3-1_5x-0000.avi_00280_003": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 19,
+      "claimed": 2
+    },
+    "WS0001-D3-1_5x-0000.avi_00340_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 7,
+      "claimed": 1
+    },
+    "WS0001-D3-1_5x-0000.avi_00340_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 12,
+      "claimed": 1
+    },
+    "WS0001-D3-1_5x-0000.avi_00340_002": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 22,
+      "claimed": 2
+    },
+    "WS0001-D3-1_5x-0000.avi_00445_000": {
+      "labels": 3,
+      "found": 1,
+      "predictions": 16,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00072_000": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 7,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00072_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 6,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00072_002": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 11,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00148_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 3,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00240_000": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 4,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00298_000": {
+      "labels": 4,
+      "found": 4,
+      "predictions": 8,
+      "claimed": 4
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00388_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 2,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00388_001": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 4,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00401_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 7,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00428_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 4,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00428_001": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 1,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00481_000": {
+      "labels": 2,
+      "found": 2,
+      "predictions": 6,
+      "claimed": 2
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00481_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 4,
+      "claimed": 1
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00481_002": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 3,
+      "claimed": 0
+    },
+    "WS0001-D3-1x_2022-01-24-135243-0000.avi_00499_000": {
+      "labels": 2,
+      "found": 2,
+      "predictions": 11,
+      "claimed": 2
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00062_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 12,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00062_001": {
+      "labels": 6,
+      "found": 3,
+      "predictions": 17,
+      "claimed": 3
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00211_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 12,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00226_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 6,
+      "claimed": 0
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00226_001": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 20,
+      "claimed": 0
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00261_000": {
+      "labels": 5,
+      "found": 3,
+      "predictions": 23,
+      "claimed": 3
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00261_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 8,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00279_000": {
+      "labels": 3,
+      "found": 1,
+      "predictions": 13,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00279_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 9,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00280_000": {
+      "labels": 2,
+      "found": 0,
+      "predictions": 12,
+      "claimed": 0
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00305_000": {
+      "labels": 6,
+      "found": 4,
+      "predictions": 19,
+      "claimed": 4
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00305_001": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 18,
+      "claimed": 2
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00305_002": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 22,
+      "claimed": 1
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00347_000": {
+      "labels": 6,
+      "found": 5,
+      "predictions": 33,
+      "claimed": 5
+    },
+    "WS0001-D3-2x_2022-01-24-135758-0000.avi_00465_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 18,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00031_000": {
+      "labels": 5,
+      "found": 2,
+      "predictions": 20,
+      "claimed": 2
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00068_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 15,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00068_001": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 13,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00068_002": {
+      "labels": 2,
+      "found": 0,
+      "predictions": 31,
+      "claimed": 0
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00170_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 19,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00170_001": {
+      "labels": 3,
+      "found": 1,
+      "predictions": 17,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00201_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 18,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00201_001": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 24,
+      "claimed": 2
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00201_002": {
+      "labels": 8,
+      "found": 3,
+      "predictions": 52,
+      "claimed": 3
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00262_000": {
+      "labels": 7,
+      "found": 7,
+      "predictions": 49,
+      "claimed": 7
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00262_001": {
+      "labels": 10,
+      "found": 5,
+      "predictions": 48,
+      "claimed": 5
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00286_000": {
+      "labels": 0,
+      "found": 0,
+      "predictions": 3,
+      "claimed": 0
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00286_001": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 13,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00323_000": {
+      "labels": 6,
+      "found": 6,
+      "predictions": 26,
+      "claimed": 6
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00469_000": {
+      "labels": 4,
+      "found": 2,
+      "predictions": 19,
+      "claimed": 2
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00469_001": {
+      "labels": 3,
+      "found": 1,
+      "predictions": 9,
+      "claimed": 1
+    },
+    "WS0001-D3-3x_2022-01-24-140406-0000.avi_00484_000": {
+      "labels": 7,
+      "found": 4,
+      "predictions": 28,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00097_000": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 36,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00109_000": {
+      "labels": 2,
+      "found": 1,
+      "predictions": 11,
+      "claimed": 1
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00109_001": {
+      "labels": 4,
+      "found": 2,
+      "predictions": 16,
+      "claimed": 2
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00109_002": {
+      "labels": 6,
+      "found": 4,
+      "predictions": 23,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00140_000": {
+      "labels": 3,
+      "found": 0,
+      "predictions": 25,
+      "claimed": 0
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00140_001": {
+      "labels": 5,
+      "found": 3,
+      "predictions": 15,
+      "claimed": 3
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00318_000": {
+      "labels": 9,
+      "found": 6,
+      "predictions": 33,
+      "claimed": 6
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00318_001": {
+      "labels": 5,
+      "found": 4,
+      "predictions": 17,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00318_002": {
+      "labels": 4,
+      "found": 4,
+      "predictions": 18,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_000": {
+      "labels": 14,
+      "found": 7,
+      "predictions": 31,
+      "claimed": 7
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_001": {
+      "labels": 6,
+      "found": 0,
+      "predictions": 23,
+      "claimed": 0
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_002": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 30,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_003": {
+      "labels": 5,
+      "found": 2,
+      "predictions": 15,
+      "claimed": 2
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_004": {
+      "labels": 3,
+      "found": 1,
+      "predictions": 19,
+      "claimed": 1
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00353_005": {
+      "labels": 15,
+      "found": 9,
+      "predictions": 39,
+      "claimed": 9
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00382_000": {
+      "labels": 2,
+      "found": 0,
+      "predictions": 20,
+      "claimed": 0
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00382_001": {
+      "labels": 5,
+      "found": 1,
+      "predictions": 27,
+      "claimed": 1
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00395_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 19,
+      "claimed": 1
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00395_001": {
+      "labels": 7,
+      "found": 3,
+      "predictions": 26,
+      "claimed": 3
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00395_002": {
+      "labels": 5,
+      "found": 4,
+      "predictions": 13,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00423_000": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 34,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00423_001": {
+      "labels": 6,
+      "found": 4,
+      "predictions": 19,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00423_002": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 24,
+      "claimed": 4
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00468_000": {
+      "labels": 9,
+      "found": 3,
+      "predictions": 28,
+      "claimed": 3
+    },
+    "WS0001-D3-4x_2022-02-14-150803-0000.avi_00468_001": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 23,
+      "claimed": 4
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00023_000": {
+      "labels": 13,
+      "found": 6,
+      "predictions": 66,
+      "claimed": 6
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00023_001": {
+      "labels": 4,
+      "found": 1,
+      "predictions": 44,
+      "claimed": 1
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00023_002": {
+      "labels": 10,
+      "found": 7,
+      "predictions": 52,
+      "claimed": 7
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00023_003": {
+      "labels": 7,
+      "found": 3,
+      "predictions": 50,
+      "claimed": 3
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00023_004": {
+      "labels": 7,
+      "found": 6,
+      "predictions": 35,
+      "claimed": 6
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00101_000": {
+      "labels": 13,
+      "found": 7,
+      "predictions": 59,
+      "claimed": 7
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00101_001": {
+      "labels": 18,
+      "found": 7,
+      "predictions": 78,
+      "claimed": 7
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00101_002": {
+      "labels": 6,
+      "found": 0,
+      "predictions": 28,
+      "claimed": 0
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00251_000": {
+      "labels": 17,
+      "found": 11,
+      "predictions": 67,
+      "claimed": 11
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00251_001": {
+      "labels": 9,
+      "found": 7,
+      "predictions": 49,
+      "claimed": 7
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00325_000": {
+      "labels": 6,
+      "found": 2,
+      "predictions": 30,
+      "claimed": 2
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00325_001": {
+      "labels": 13,
+      "found": 2,
+      "predictions": 45,
+      "claimed": 2
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00349_000": {
+      "labels": 7,
+      "found": 0,
+      "predictions": 49,
+      "claimed": 0
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00349_001": {
+      "labels": 6,
+      "found": 1,
+      "predictions": 35,
+      "claimed": 1
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00349_002": {
+      "labels": 10,
+      "found": 3,
+      "predictions": 44,
+      "claimed": 3
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00349_003": {
+      "labels": 7,
+      "found": 2,
+      "predictions": 30,
+      "claimed": 2
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00355_000": {
+      "labels": 21,
+      "found": 12,
+      "predictions": 77,
+      "claimed": 12
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00355_001": {
+      "labels": 13,
+      "found": 6,
+      "predictions": 55,
+      "claimed": 6
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00376_000": {
+      "labels": 1,
+      "found": 1,
+      "predictions": 10,
+      "claimed": 1
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00376_001": {
+      "labels": 6,
+      "found": 2,
+      "predictions": 26,
+      "claimed": 2
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00437_000": {
+      "labels": 9,
+      "found": 5,
+      "predictions": 36,
+      "claimed": 5
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00464_000": {
+      "labels": 16,
+      "found": 8,
+      "predictions": 66,
+      "claimed": 8
+    },
+    "WS0001-D3-6x_2022-02-14-151420-0000.avi_00464_001": {
+      "labels": 13,
+      "found": 7,
+      "predictions": 68,
+      "claimed": 7
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00014_000": {
+      "labels": 8,
+      "found": 5,
+      "predictions": 40,
+      "claimed": 5
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00014_001": {
+      "labels": 4,
+      "found": 3,
+      "predictions": 39,
+      "claimed": 3
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00014_002": {
+      "labels": 4,
+      "found": 2,
+      "predictions": 28,
+      "claimed": 2
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00024_000": {
+      "labels": 11,
+      "found": 5,
+      "predictions": 52,
+      "claimed": 5
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00024_001": {
+      "labels": 23,
+      "found": 12,
+      "predictions": 88,
+      "claimed": 12
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00024_002": {
+      "labels": 10,
+      "found": 4,
+      "predictions": 45,
+      "claimed": 4
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00216_000": {
+      "labels": 8,
+      "found": 4,
+      "predictions": 32,
+      "claimed": 4
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00216_001": {
+      "labels": 3,
+      "found": 0,
+      "predictions": 40,
+      "claimed": 0
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00216_002": {
+      "labels": 18,
+      "found": 8,
+      "predictions": 81,
+      "claimed": 8
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00227_000": {
+      "labels": 12,
+      "found": 7,
+      "predictions": 53,
+      "claimed": 7
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00227_001": {
+      "labels": 14,
+      "found": 8,
+      "predictions": 83,
+      "claimed": 8
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00250_000": {
+      "labels": 12,
+      "found": 5,
+      "predictions": 57,
+      "claimed": 5
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00250_001": {
+      "labels": 12,
+      "found": 9,
+      "predictions": 49,
+      "claimed": 9
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00402_000": {
+      "labels": 11,
+      "found": 4,
+      "predictions": 41,
+      "claimed": 4
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00407_000": {
+      "labels": 10,
+      "found": 4,
+      "predictions": 50,
+      "claimed": 4
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00470_000": {
+      "labels": 1,
+      "found": 0,
+      "predictions": 6,
+      "claimed": 0
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00470_001": {
+      "labels": 7,
+      "found": 5,
+      "predictions": 32,
+      "claimed": 5
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00471_000": {
+      "labels": 3,
+      "found": 2,
+      "predictions": 36,
+      "claimed": 2
+    },
+    "WS0001-D3-8x_2022-02-14-151953-0000.avi_00471_001": {
+      "labels": 10,
+      "found": 5,
+      "predictions": 39,
+      "claimed": 5
+    }
+  }
+}

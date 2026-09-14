@@ -43,8 +43,17 @@ def main(allow_fixture: bool = False) -> int:
     base = ROOT / "data" / "baseline_real.json"
     if base.exists():
         b = json.loads(base.read_text())
+        # Both scorings travel: over the whole frame, and restricted to the disc the hand
+        # labels actually occupy. The page shows the correction rather than applying it
+        # quietly, because a reader who knows this dataset should see what it did.
         d["baseline_per_clip"] = {
             "dtw_cutoff": b.get("dtw_cutoff"),
+            "detection_settings": {"score_threshold": b.get("score_threshold"),
+                                   "overlap_threshold": b.get("overlap_threshold")},
+            "region": b.get("region"),
+            "region_stated": {k[7:]: b.get(k) for k in
+                              ("region_labels", "region_found", "region_predictions",
+                               "region_recall", "region_precision") if b.get(k) is not None},
             "stated": {k: b.get(k) for k in ("labels", "found", "predictions", "recall", "precision", "median_adtw_px")},
             "sections": {
                 k: {"labels": v["labels"], "found": v["found"],
@@ -52,6 +61,23 @@ def main(allow_fixture: bool = False) -> int:
                 for k, v in (b.get("per_section") or {}).items()
             },
         }
+        # Recall against worm density, which is the diagnostic that exposed the scoring
+        # bug: a real detection limit degrades as the field crowds, and the buggy run was
+        # flat at about 0.51 from the sparsest clips to the densest.
+        import re as _re, collections as _c
+        by = _c.defaultdict(lambda: [0, 0])
+        for name, v in (b.get("per_section") or {}).items():
+            m = _re.search(r"D3-(\d+(?:_\d+)?)x", name)
+            if not m:
+                continue
+            dn = m.group(1).replace("_", ".")
+            by[dn][0] += v["found"]; by[dn][1] += v["labels"]
+        if by:
+            d["baseline_per_clip"]["recall_by_density"] = [
+                {"density": float(k), "found": v[0], "labels": v[1],
+                 "recall": round(v[0] / v[1], 3)}
+                for k, v in sorted(by.items(), key=lambda kv: float(kv[0])) if v[1]
+            ]
 
     # Refuse to write fixture content into docs/ at all. The page has a runtime guard,
     # but a guard that fires in the browser does not stop `git add -A` from committing

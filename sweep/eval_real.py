@@ -41,6 +41,14 @@ flags.DEFINE_integer("centroid_gate", 60, "Skip prediction/label pairs further a
 flags.DEFINE_string("preprocess", "clahe", "clahe (as detect.py) or percentile (as training).")
 flags.DEFINE_integer("limit", 0, "Score only the first N sections. 0 means all of them.")
 flags.DEFINE_string("only_density", None, "Restrict to one video density, for example 13x or 1_5x.")
+flags.DEFINE_string(
+    "labelling_check",
+    None,
+    "Path to labelling_check.json. Its label_region gives the disc the humans "
+    "actually annotated, and scoring is additionally reported restricted to it.",
+)
+flags.DEFINE_float("region_radius", 0.0, "Override the region radius in px. 0 uses the file.")
+flags.DEFINE_string("region_centre", None, "Override the region centre as 'x,y'.")
 FLAGS = flags.FLAGS
 
 
@@ -92,16 +100,53 @@ def score_section(preds_w, labels):
     return out
 
 
+def load_region():
+    """
+    The disc the annotators actually worked in.
+
+    97 percent of hand-clicked points sit inside a disc of radius 72 px centred at
+    (113, 116), which is a quarter of the 256 px frame. Detections are made over the
+    whole frame, so a correct detection outside that disc has no label it could ever
+    match and is counted as a false positive. Scoring restricted to the disc is the
+    only way precision means anything; recall is unaffected either way.
+    """
+    centre, radius = None, None
+    if FLAGS.labelling_check:
+        with open(FLAGS.labelling_check) as f:
+            lr = json.load(f).get("label_region", {})
+        centre = lr.get("centre_of_labelled_region")
+        radius = lr.get("hard_radius_px")
+    if FLAGS.region_centre:
+        centre = [float(v) for v in FLAGS.region_centre.split(",")]
+    if FLAGS.region_radius > 0:
+        radius = FLAGS.region_radius
+    if centre is None or radius is None:
+        return None
+    return {"centre_px": [float(centre[0]), float(centre[1])], "radius_px": float(radius)}
+
+
+def inside(points, region):
+    """points is (..., 2); returns a boolean mask."""
+    cx, cy = region["centre_px"]
+    d2 = (points[..., 0] - cx) ** 2 + (points[..., 1] - cy) ** 2
+    return d2 <= region["radius_px"] ** 2
+
+
 def main(argv):
     del argv
     data = Path(FLAGS.data)
     with open(data / "labels.json") as f:
         labels_all = json.load(f)
 
+    region = load_region()
+    if region:
+        logging.info("scoring also restricted to disc %s", region)
+
     with dt.time_activity("Loading model"):
         forward_fn, state = dt.load_model(FLAGS.model)
 
     n_lab = n_found = n_pred = n_claimed = 0
+    r_lab = r_found = r_pred = r_claimed = 0
     per_section = {}
     dists = []
 
@@ -134,21 +179,57 @@ def main(argv):
         n_pred += len(preds.w)
         n_claimed += claimed
         dists += [d for d, _ in scored if np.isfinite(d)]
-        per_section[name] = {
+
+        sec = {
             "labels": len(labels), "found": found,
             "predictions": int(len(preds.w)), "claimed": claimed,
         }
+
+        if region and len(preds.w):
+            # A label counts if its midpoint is in the disc, a prediction if the
+            # midpoint of its centreline is. Same rule on both sides.
+            curves = np.asarray(preds.w[:, 1])
+            pred_in = inside(curves[:, curves.shape[1] // 2, :], region)
+            lab_in = [bool(inside(lab[len(lab) // 2], region)) for lab in labels]
+
+            rl = sum(lab_in)
+            rf = sum(
+                1 for (d, i), ok in zip(scored, lab_in)
+                if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
+            )
+            rc = len({
+                i for (d, i), ok in zip(scored, lab_in)
+                if ok and d <= FLAGS.dtw_cutoff and i >= 0 and pred_in[i]
+            })
+            r_lab += rl
+            r_found += rf
+            r_pred += int(pred_in.sum())
+            r_claimed += rc
+            sec.update({
+                "region_labels": rl, "region_found": rf,
+                "region_predictions": int(pred_in.sum()), "region_claimed": rc,
+            })
+
+        per_section[name] = sec
 
     result = {
         "model": FLAGS.model,
         "preprocess": FLAGS.preprocess,
         "dtw_cutoff": FLAGS.dtw_cutoff,
+        "score_threshold": FLAGS.score_threshold,
+        "overlap_threshold": FLAGS.overlap_threshold,
         "labels": n_lab,
         "found": n_found,
         "recall": n_found / n_lab if n_lab else 0.0,
         "predictions": n_pred,
         "precision": n_claimed / n_pred if n_pred else 0.0,
         "median_adtw_px": float(np.median(dists)) if dists else None,
+        "region": region,
+        "region_labels": r_lab if region else None,
+        "region_found": r_found if region else None,
+        "region_recall": (r_found / r_lab if r_lab else 0.0) if region else None,
+        "region_predictions": r_pred if region else None,
+        "region_precision": (r_claimed / r_pred if r_pred else 0.0) if region else None,
         "per_section": per_section,
     }
     print(json.dumps({k: v for k, v in result.items() if k != "per_section"}, indent=2))

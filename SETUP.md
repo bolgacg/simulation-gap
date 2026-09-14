@@ -133,6 +133,21 @@ like and how it moves is a literal inside `celegans/simulation.py` and
 `celegans/clips.py`. A study that sweeps simulator settings therefore cannot be run
 with flags alone.
 
+Five of those six, not six. `--sim_dropout` is a dead flag. train.py defines it and
+records it in `experiment.json`, but the call is
+
+```python
+sim_fn = lambda key: simulate(
+    key, nworms, FLAGS.clip_duration, FLAGS.nframes, FLAGS.size, FLAGS.kpoints
+)
+```
+
+with no eighth argument, so `simulate`'s `dropout: float = 0` is always 0 and
+`drop_param` never runs. Setting `--sim_dropout` in a sweep changes nothing and the
+run record will say it did. It would not work even if wired up: `drop_param` decides
+with Python's `random.random()` inside a function traced under `vmap`/`pmap`, so the
+choice would be frozen into the compiled function rather than redrawn per batch.
+
 `sweep/` adds that without touching the clone:
 
 | File | What it does |

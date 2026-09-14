@@ -495,17 +495,24 @@
       // On a partially labelled set it would be a number about the labelling effort.
       ((D.baseline_per_clip && D.baseline_per_clip.stated && D.baseline_per_clip.stated.precision != null &&
         (D.labelling_check || {}).verdict_exhaustive)
-        ? '<div><div class="k">Its precision</div><div class="n">&ge; ' + num(D.baseline_per_clip.stated.precision) +
-          '</div><div class="s">' + n(D.baseline_per_clip.stated.predictions) + ' detections against ' +
-          n(D.baseline_per_clip.stated.labels) + ' labelled worms at the repository\'s own threshold of 0.5. ' +
-          'A floor, badly understated: the labels sit in the middle of each frame and detections are ' +
-          'counted across all of it. The coda explains</div></div>'
+        ? (function () {
+            var bp = D.baseline_per_clip, rs = bp.region_stated || {};
+            return '<div><div class="k">Its precision</div><div class="n">&ge; ' +
+              num(rs.precision != null ? rs.precision : bp.stated.precision) + '</div><div class="s">' +
+              (rs.precision != null
+                ? 'scored inside the disc the hand labels occupy, where ' + n(rs.predictions) +
+                  ' detections meet ' + n(rs.labels) + ' labelled worms. Over the whole frame it reads ' +
+                  num(bp.stated.precision) + ', and that difference is an artefact of where the labels are'
+                : n(bp.stated.predictions) + ' detections against ' + n(bp.stated.labels) + ' labelled worms') +
+              '</div></div>';
+          })()
         : '') +
       '<div><div class="k">Metric</div><div class="n" style="font-size:15px">' + esc(m.name || 'n/a') +
       '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
     $('#v1').innerHTML = b.real_score == null
       ? '<b>The baseline has not finished running.</b> Until it has, no number on this page should be read.'
-      : '<b>The published weights score ' + num(b.real_score) + ' on real footage.</b> ' +
+      : '<b>The published weights find ' + (100 * b.real_score).toFixed(1) + ' percent of the worms a human marked, ' +
+        'with a median error of half a pixel.</b> ' +
         (b.paper_reports != null
           ? 'The paper reports ' + num(b.paper_reports) + ' on its own evaluation, so the two are close enough that the code below is measuring what it claims to. '
           : 'The paper does not report a directly comparable figure, so this is an internal reference rather than a reproduction. ') +
@@ -585,6 +592,53 @@
       $('#src-data').innerHTML = 'The labelled real footage: <a href="' + esc(rd.url) + '">' + esc(rd.source || rd.url) +
         '</a>, ' + esc(rd.licence || '') + '.';
     }
+  }
+
+  // The scoring was wrong once, by a factor of two, and the way that was caught is a
+  // better argument for trusting the rest of the page than the corrected number is.
+  function drawFlip() {
+    var bp = D.baseline_per_clip || {};
+    var rows = bp.recall_by_density || [];
+    var text = $('#fliptext');
+    if (!text) return;
+    if (!rows.length) { text.textContent = ''; caption('#flipviz', ''); return; }
+    text.innerHTML =
+      'The first version of the scoring here reported that the published model found about half the ' +
+      'worms. It was wrong, and wrong for a reason worth stating: the distance measure walks the ' +
+      'labelled centreline along the predicted one in a single direction, while the model\'s head and ' +
+      'tail orientation is arbitrary. Their own training loss handles that by taking the minimum over ' +
+      'the label and its reverse. The scoring did not, so roughly half of all correct detections were ' +
+      'counted as misses. ' +
+      '<b>The tell was in the shape, not the total.</b> The broken run gave almost exactly the same ' +
+      'recall at every worm density, from about one worm per clip to eighteen. A real detection limit ' +
+      'has to degrade as the field crowds and worms overlap; a coin flip does not. Corrected, it does ' +
+      'degrade, and the chart below is what that looks like. The corrected median error of half a pixel ' +
+      'is a second check: the paper puts human labelling accuracy at that same half-pixel level.';
+
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 760, H = narrow ? 230 : 210;
+    var P = narrow ? { l: 42, r: 14, t: 16, b: 38 } : { l: 52, r: 18, t: 14, b: 34 };
+    var s2 = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Recall against worm density, corrected' });
+    var maxD = rows[rows.length - 1].density;
+    var X = function (v) { return P.l + v / maxD * (W - P.l - P.r); };
+    var Y = function (v) { return H - P.b - (v - 0.4) / 0.62 * (H - P.t - P.b); };
+    [0.5, 0.75, 1.0].forEach(function (g) {
+      s2.appendChild(el('line', { x1: P.l, y1: Y(g), x2: W - P.r, y2: Y(g), stroke: '#e2e0dc' }));
+      s2.appendChild(el('text', { x: P.l - 6, y: Y(g) + 4, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, g.toFixed(2)));
+    });
+    s2.appendChild(el('path', { d: rows.map(function (r, i) {
+      return (i ? 'L' : 'M') + X(r.density).toFixed(1) + ' ' + Y(r.recall).toFixed(1); }).join(' '),
+      fill: 'none', stroke: '#2f7d54', 'stroke-width': 2.4 }));
+    rows.forEach(function (r) {
+      s2.appendChild(el('circle', { cx: X(r.density), cy: Y(r.recall), r: 4, fill: '#2f7d54' }));
+      s2.appendChild(el('text', { x: X(r.density), y: H - P.b + 15, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, r.density + 'x'));
+    });
+    var fh = $('#flipviz'); if (fh) { fh.innerHTML = ''; fh.appendChild(s2); }
+    caption('#flipviz', 'Corrected recall against worm density. It falls as the field crowds, which is ' +
+      'what a detection limit does. The broken version was flat across this whole range.');
   }
 
   // Every model here is trained far below the published schedule, and a reader from this
@@ -965,6 +1019,6 @@
       return;
     }
     redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
-    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
+    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
   });
 })();

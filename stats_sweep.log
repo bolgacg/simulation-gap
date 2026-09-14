@@ -1,0 +1,4 @@
+measuring real clips, no labels used
+  178 real frames in 12 s
+I0914 23:34:03.119805 124370812436608 xla_bridge.py:836] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+W0914 23:34:03.120157 124370812436608 xla_bridge.py:878] An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.

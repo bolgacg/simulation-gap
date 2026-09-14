@@ -30,9 +30,16 @@ centreline and a labelled one. The evaluation set is
 clips of real footage at worm densities from one to thirteen times, carrying 1,474
 hand-clicked centrelines.
 
-The published weights score 0.509 on that set. The paper reports no directly comparable
-figure, so this is an internal reference point rather than a reproduction, and the page
-says so where it uses it.
+The published weights find **98.6 percent** of those worms, with a median error of half a
+pixel, which is where the paper puts human labelling accuracy.
+
+That number was wrong here once, at 0.509, and the reason is worth keeping. The distance
+measure walks the labelled centreline along the predicted one in a single direction, while
+the model's head and tail orientation is arbitrary; their own training loss handles that by
+taking the minimum over the label and its reverse, and the scoring did not. Roughly half of
+all correct detections were counted as misses. The tell was the shape rather than the total:
+the broken run gave the same recall at every worm density from one worm a clip to eighteen,
+and a real detection limit has to degrade as the field crowds. Corrected, it does.
 
 ## The three acts
 
