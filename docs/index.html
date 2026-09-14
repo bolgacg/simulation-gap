@@ -284,11 +284,25 @@ tr.on td{background:#eef2f7}
   <p class="hint" id="statrankviz-cap"></p>
   <div class="viz" id="statrankviz"></div>
   <div class="verdict sting" id="vstats"></div>
+  <div class="card" id="grancard"><div class="viz" id="granviz"></div>
+    <div class="legend" id="granlegend"></div></div>
+  <p class="hint" id="granviz-cap"></p>
+  <div class="verdict sting" id="vstats2"></div>
 
   <h3 style="margin-top:28px">Then, whether they pick the settings that work</h3>
   <div class="card"><div class="viz" id="thesisviz"></div><div class="legend" id="thesislegend"></div></div>
   <div class="stat" id="thesisstat"></div>
   <div class="verdict sting" id="v3"></div>
+</div></section>
+
+<section id="simread"><div class="wrap">
+  <div class="sec-label">Reading the simulator</div>
+  <h2>Some of what is wrong is not a setting</h2>
+  <p class="why"><b>Why this matters</b> A tuning loop can only move what the code exposes. If the
+  largest errors live in lines no flag reaches, the loop converges and the simulator is still
+  wrong, and nothing in the score says why.</p>
+  <p class="lede" id="simreadtext"></p>
+  <div id="simreadlist"></div>
 </div></section>
 
 <section id="coda"><div class="wrap">

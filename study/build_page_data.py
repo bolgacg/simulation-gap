@@ -79,6 +79,43 @@ def main(allow_fixture: bool = False) -> int:
                 for k, v in sorted(by.items(), key=lambda kv: float(kv[0])) if v[1]
             ]
 
+    # The granulometry curves behind act three's warning. They travel because the warning
+    # rests on the SHAPE of the curve rather than on any single number, and a shape stated
+    # as eleven numbers inside a sentence is a shape nobody reads. The page draws it.
+    ss = ROOT / "data" / "stats_sweep.json"
+    if ss.exists():
+        s = json.loads(ss.read_text())
+        radii = [1, 2, 3, 4, 6]
+        keys = ["open_r%d" % r for r in radii]
+        real = (s.get("real") or {}).get("stats") or {}
+        if all(k in real for k in keys):
+            series = [{"name": "real footage", "is_real": True,
+                       "values": [real[k] for k in keys]}]
+            # Join on results.json for the axis, not on stats_sweep.json. A configuration
+            # that holds the repository's own value on its axis is labelled "defaults"
+            # there, so filtering stats_sweep by axis silently drops R_080, which is the
+            # one line on this chart a reader most needs to see.
+            by_name = {c["name"]: c for c in (s.get("configs") or [])}
+            for c in d.get("configs") or []:
+                if c.get("axis") != "body_radius":
+                    continue
+                st = (by_name.get(c["name"]) or {}).get("sim_stats") or {}
+                if not all(k in st for k in keys):
+                    print(f"  granulometry: no statistics for {c['name']}, leaving it off the chart")
+                    continue
+                series.append({"name": c["name"], "axis_value": c.get("axis_value"),
+                               "is_repo_default": bool(c.get("is_repo_default_on_its_axis")),
+                               "values": [st[k] for k in keys]})
+            series[1:] = sorted(series[1:], key=lambda x: x.get("axis_value") or 0)
+            d["granulometry"] = {
+                "what": "share of bright pixels that survive a morphological opening of radius r, "
+                        "which is a size curve for the bright structure in a frame",
+                "radii": radii, "series": series,
+                "axis": "body_radius",
+                "repo_default": next((c.get("default_value") for c in (d.get("axes") or [])
+                                      if c.get("key") == "body_radius"), None),
+            }
+
     # Refuse to write fixture content into docs/ at all. The page has a runtime guard,
     # but a guard that fires in the browser does not stop `git add -A` from committing
     # the file, which is exactly what happened once. The only safe place to stop it is

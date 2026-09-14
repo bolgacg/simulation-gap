@@ -358,7 +358,9 @@
     if (rows.length < 3) {
       text.textContent = 'The statistics have not been computed yet.';
       if (v) v.innerHTML = '';
+      var v0 = $('#vstats2'); if (v0) v0.innerHTML = '';
       caption('#statrankviz', '');
+      drawGranulometry();
       return;
     }
     var f = D.statistics_only_finding || {};
@@ -397,6 +399,9 @@
     caption('#statrankviz', 'Distance from real footage, no labels and no training used. Lower is closer. ' +
       'Amber rows hold the repository\'s own value on their axis.');
 
+    // The radius warning and the other axes are rendered into two blocks with the
+    // granulometry chart between them, because the chart is evidence for the first and
+    // would read as evidence for the last if it sat under the whole thing.
     if (v) {
       v.innerHTML = (f.radius_axis_warning
         ? '<b>The thing worth taking from this act, and it is a warning rather than a result.</b> ' +
@@ -405,8 +410,12 @@
           'lever on an error that has nothing to do with body radius, so it pulls that lever. Nothing in ' +
           'the number says it happened, and it is visible here with no labels and no training, which is ' +
           'the cheapest place there is to find it.'
-        : '') +
-        (f.noise_axis ? ' <br><br><b>One thing that holds under every subset of the statistics.</b> ' +
+        : '');
+    }
+    var v2 = $('#vstats2');
+    if (v2) {
+      v2.innerHTML =
+        (f.noise_axis ? '<b>One thing that holds under every subset of the statistics.</b> ' +
           cap1(esc(f.noise_axis)) : '') +
         (f.ranking_depends_on_statistic_choice
           ? ' <br><br><b>One that does not.</b> ' + cap1(esc(f.ranking_depends_on_statistic_choice)) : '') +
@@ -414,6 +423,197 @@
         (f.motion_axis ? ' <br><br><b>And one axis these statistics cannot see at all.</b> ' +
           cap1(esc(f.motion_axis)) : '');
     }
+    drawGranulometry();
+  }
+
+  // The size curve behind the radius warning. Every line is the share of bright pixels in a
+  // frame that survives an opening of radius r, so a line that sits below the real one is a
+  // frame with less bright structure at that scale. The point of drawing it is the shape:
+  // thickening the bodies lifts the left end onto real and pushes the right end further off,
+  // which is what a single distance number cannot say.
+  function drawGranulometry() {
+    var g = D.granulometry, host = $('#granviz'), card = $('#grancard'), leg = $('#granlegend');
+    if (!host || !card) return;
+    if (!g || !g.series || g.series.length < 2) {
+      card.style.display = 'none';
+      caption('#granviz', '');
+      return;
+    }
+    card.style.display = '';
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 700, H = narrow ? 240 : 280;
+    var P = { l: narrow ? 42 : 52, r: narrow ? 56 : 92, t: 12, b: 34 };
+    var radii = g.radii, real = g.series[0];
+    var sims = g.series.slice(1);
+    var all = g.series.reduce(function (acc, s) { return acc.concat(s.values); }, []);
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    var pad = (hi - lo) * 0.12 || 0.05;
+    lo = Math.max(0, lo - pad); hi = Math.min(1, hi + pad);
+    var X = function (i) { return P.l + i / (radii.length - 1) * (W - P.l - P.r); };
+    var Y = function (v) { return P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Share of bright pixels surviving a morphological opening, real footage against each body radius' });
+
+    [lo, (lo + hi) / 2, hi].forEach(function (t) {
+      svg.appendChild(el('line', { x1: P.l, y1: Y(t), x2: W - P.r, y2: Y(t),
+        stroke: '#e6e3dd', 'stroke-width': 1 }));
+      svg.appendChild(el('text', { x: P.l - 7, y: Y(t) + 3.5, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 8.5 : 9.5, fill: '#8b95a1' },
+        num(t, 2)));
+    });
+    radii.forEach(function (r, i) {
+      svg.appendChild(el('text', { x: X(i), y: H - 14, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 9 : 10, fill: '#8b95a1' },
+        'r=' + r));
+    });
+    svg.appendChild(el('text', { x: (P.l + W - P.r) / 2, y: H - 2, 'text-anchor': 'middle',
+      'font-size': narrow ? 9 : 10, fill: '#8b95a1' }, 'opening radius, pixels'));
+
+    function path(vals) {
+      return vals.map(function (v, i) { return (i ? 'L' : 'M') + X(i) + ' ' + Y(v); }).join(' ');
+    }
+    // The repository's own value is amber wherever it appears on this page, so it is amber
+    // here too. The rest run light to dark with radius.
+    var shades = ['#cdd6e0', '#a8bccf', '#7f9fbd', '#2c4a6b'];
+    var colourOf = function (s, i) {
+      if (s.is_repo_default) return '#c8860d';
+      var j = sims.filter(function (x) { return !x.is_repo_default; }).indexOf(s);
+      return shades[Math.min(Math.max(j, 0), shades.length - 1)];
+    };
+    sims.forEach(function (s, i) {
+      var col = colourOf(s, i);
+      svg.appendChild(el('path', { d: path(s.values), fill: 'none', stroke: col,
+        'stroke-width': s.is_repo_default ? 2.4 : 1.8 }));
+      if (!narrow) {
+        svg.appendChild(el('text', { x: X(radii.length - 1) + 7, y: Y(s.values[s.values.length - 1]) + 3.5,
+          'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: col },
+          'R=' + num(s.axis_value, 1)));
+      }
+    });
+    svg.appendChild(el('path', { d: path(real.values), fill: 'none', stroke: '#8b2f2f',
+      'stroke-width': 2.6 }));
+    if (!narrow) {
+      svg.appendChild(el('text', { x: X(radii.length - 1) + 7, y: Y(real.values[real.values.length - 1]) + 3.5,
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b2f2f', 'font-weight': '600' },
+        'real'));
+    }
+    host.innerHTML = ''; host.appendChild(svg);
+
+    if (leg) {
+      leg.innerHTML = '<span><i style="border-color:#8b2f2f"></i>real footage</span>' +
+        sims.map(function (s, i) {
+          return '<span><i style="border-color:' + colourOf(s, i) + '"></i>body radius ' +
+            num(s.axis_value, 1) + (s.is_repo_default ? ', the repository value' : '') + '</span>';
+        }).join('');
+    }
+    var thick = sims[sims.length - 1];
+    var repo = sims.filter(function (s) { return s.is_repo_default; })[0] || sims[0];
+    caption('#granviz', 'Share of bright pixels surviving an opening of radius r, which is a size curve ' +
+      'for the bright structure in a frame. Every synthetic line sits below the real one at every ' +
+      'radius. Thickening the worms from ' + num(repo.axis_value, 1) + ' to ' + num(thick.axis_value, 1) +
+      ' closes the gap at r=1, from ' + num(real.values[0] - repo.values[0], 3) + ' to ' +
+      num(real.values[0] - thick.values[0], 3) + ', and widens it at r=' + radii[radii.length - 1] +
+      ', from ' + num(real.values[radii.length - 1] - repo.values[radii.length - 1], 3) + ' to ' +
+      num(real.values[radii.length - 1] - thick.values[radii.length - 1], 3) +
+      '. No radius reproduces the shape.');
+  }
+
+  // What came out of reading the authors' simulator rather than sweeping it. This is here
+  // because it is the half of the study that never needed the machine that went down, and
+  // because four of the five sit in lines no configuration file reaches, which is the part
+  // of the fellowship's own question that a tuning loop cannot answer for itself.
+  function drawSimRead() {
+    var s = D.simulator_findings;
+    var text = $('#simreadtext'), host = $('#simreadlist'), sec = $('#simread');
+    if (!text || !host) return;
+    if (!s) { if (sec) sec.style.display = 'none'; return; }
+
+    var items = [];
+    var a = s.drag_anisotropy_prior_is_unphysical;
+    if (a) {
+      var dd = a.drawn_distribution || {};
+      items.push({
+        h: 'The drag ratio is drawn from a prior that is mostly unphysical',
+        b: '<p class="small"><code>' + esc(a.code) + '</code></p>' +
+           '<p class="small">Alpha is ' + esc(a.what_alpha_is || '') +
+           (a.slender_body_theory ? ' Slender body theory gives ' + esc(a.slender_body_theory) + '.' : '') +
+           ' Sampling that line gives a median of ' + num(dd.median, 2) +
+           (dd.p5 != null && dd.p95 != null ? ', with the middle nine tenths of draws running from ' +
+             num(dd.p5, 2) + ' to ' + num(dd.p95, 2) : '') + '.</p>' +
+           '<p class="small">' + cap1(esc(a.why_it_matters || '')) + ' It is also the only one of ' +
+           'these five the sweep can reach, as the drag anisotropy axis in act two moves the centre ' +
+           'of that prior.</p>'
+      });
+    }
+    var w = s.wave_amplitude_is_gated_at_a_fixed_rate;
+    if (w) {
+      items.push({
+        h: 'The stroke amplitude is gated at a rate no parameter can change',
+        b: '<p class="small"><code>' + esc(w.code) + '</code></p>' +
+           '<p class="small">That ' + esc(w.what_it_does || '') + ' Rectifying a sine doubles its rate, ' +
+           'so the envelope repeats every ' + num(w.envelope_period_s, 2) + ' seconds.</p>' +
+           '<p class="small">' + cap1(esc(w.why_it_matters || '')) + '</p>'
+      });
+    }
+    var f = s.a_flag_that_does_nothing;
+    if (f) {
+      items.push({
+        h: 'One training flag does nothing',
+        b: '<p class="small"><code>' + esc(f.flag || '') + '</code></p>' +
+           '<p class="small">It exists in the argument parser and nowhere else, because ' +
+           esc(f.what_happens || '') + '</p>' +
+           '<p class="small">It would not do anything if it were wired up, because ' +
+           esc(f.would_not_work_anyway || '') + ' The setting appears in the run record either way, ' +
+           'so a reader of that record would believe it had been applied.</p>'
+      });
+    }
+    var dfl = s.defaults_are_not_the_published_configuration;
+    if (dfl) {
+      var keys = Object.keys(dfl).filter(function (k) {
+        return dfl[k] && typeof dfl[k] === 'object' && dfl[k].repo_default != null;
+      });
+      var rows = keys.map(function (k) {
+        return '<tr><td class="l mono">' + esc(k) + '</td><td class="num">' +
+          n(dfl[k].repo_default) + '</td><td class="num">' + n(dfl[k].published_run) + '</td></tr>';
+      }).join('');
+      items.push({
+        h: 'The repository defaults are not the configuration that was published',
+        b: '<div class="tscroll"><table><thead><tr><th>Setting</th><th>Repo default</th>' +
+           '<th>Published run</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+           '<p class="small" style="margin-top:10px">' + cap1(esc(dfl.why_it_matters || '')) +
+           ' Anyone starting from the repository and reporting a weaker result has changed the ' +
+           'training before touching the simulator, and would have no way of knowing it.</p>'
+      });
+    }
+    if (s.frame_rate_already_matches) {
+      var rec = (D.baseline_per_clip && D.baseline_per_clip.stated || {}).recall;
+      items.push({
+        h: 'One thing was already matched to the camera',
+        b: '<p class="small">' + cap1(esc(s.frame_rate_already_matches)) + ' Nothing above is a list ' +
+           'of oversights. The simulator is good enough that a detector trained only on it finds ' +
+           (rec != null ? num(rec * 100, 1) + ' percent' : 'almost all') +
+           ' of the hand-clicked worms on real footage, which is what act one measures. These are ' +
+           'the places where a tuning loop would be working blind, not a verdict on the simulator.</p>'
+      });
+    }
+
+    text.innerHTML = 'These came from reading the simulator and sampling its own code, with nothing ' +
+      'trained and no sweep involved. ' +
+      (a ? 'Only the first is something a sweep over simulator settings actually moves. The rest sit in a ' +
+           'hardcoded envelope, a flag that is never passed, and the training configuration, so no ' +
+           'ranking over simulator configurations can see them. '
+         : 'Most of them sit outside the simulator settings entirely, so no ranking over ' +
+           'configurations can see them. ') +
+      'That bounds what the loop in act three can do, whatever the correlation turns out to be.';
+
+    host.innerHTML = '';
+    items.forEach(function (it, i) {
+      var d = document.createElement('div');
+      d.className = 'card';
+      if (i) d.style.marginTop = '14px';
+      d.innerHTML = '<div class="card-title">' + it.h + '</div>' + it.b;
+      host.appendChild(d);
+    });
   }
 
   function drawThesis() {
@@ -557,6 +757,10 @@
           (rd.clips != null ? rd.clips + ' clips of real footage' : 'real footage') + ', using no labels, ' +
           'and that ranking has a warning in it worth more than the ranking. ') +
       'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all. ' +
+      ((D.simulator_findings || {}).wave_amplitude_is_gated_at_a_fixed_rate
+        ? 'Reading the simulator turned up a wave envelope that no parameter can change and a training ' +
+          'flag that silently does nothing, which is the part of the problem no tuning loop can see. '
+        : '') +
       // The strongest fact against this page's own premise, computed, in the first screen.
       (function () {
         var cov = (D.labelling_check || {}).simulator_length_coverage;
@@ -1135,6 +1339,6 @@
       return;
     }
     redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawStatsOnly); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
-    drawDomain(); renderAxes(); drawSweep(); drawStatsOnly(); drawThesis(); fillProse(); drawThreshold(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
+    drawDomain(); renderAxes(); drawSweep(); drawStatsOnly(); drawSimRead(); drawThesis(); fillProse(); drawThreshold(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
   });
 })();

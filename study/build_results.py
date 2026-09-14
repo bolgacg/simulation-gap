@@ -247,6 +247,20 @@ def main():
                 "anything, and the sweep was therefore not run."
             ) if curve else None,
             "not_merely_a_threshold_artefact": thr,
+            "undertrained_not_broken": {
+                "loss_trace": [
+                    {"step": 50, "loss": 114.37, "w": 66.54, "s": 12.12, "p": 35.71},
+                    {"step": 100, "loss": 67.34, "w": 40.31, "s": 1.295, "p": 25.73},
+                ],
+                "what_the_trace_shows": "the total loss and the confidence term both fall "
+                    "cleanly, the confidence term by a factor of ten over fifty steps, so "
+                    "optimisation is working and the model is simply short of budget.",
+                "predictions_per_clip": "one, at 200 steps, and zero at 400 and 600. "
+                    "Suppression collapses every candidate into a single survivor because "
+                    "the latent space has not separated anything yet, and by 400 steps the "
+                    "confidence head has learned to put everything below the 0.5 threshold. "
+                    "A broken model does not behave that way; an untrained one does.",
+            } if curve else None,
             "not_achievable_because": (
                 "the machine holding the GPU became unreachable, so the schedule was not "
                 "chosen too short by judgement, it was bounded by what a laptop CPU could "
@@ -324,6 +338,62 @@ def main():
                            "range tested against a spread of 0.54 to 3.39 on the other axes, "
                            "so these statistics cannot rank it.",
         },
+        "simulator_findings": {
+            "what": "things about the authors' simulator that are visible from reading it "
+                    "and sampling it, independent of any sweep or any training",
+            "drag_anisotropy_prior_is_unphysical": {
+                "code": "params['alpha'] = abs(normal(loc=4, scale=4) + 1.0)",
+                "what_alpha_is": "the ratio of normal to tangential drag on the body, which "
+                    "is what decides how a worm converts undulation into forward motion.",
+                "drawn_distribution": {"median": 5.06, "mean": 5.41, "p5": 0.55, "p95": 11.59},
+                "slender_body_theory": "about 1.5 to 2 for a slender cylinder",
+                "share_of_draws_in_physical_range": 0.048,
+                "share_of_draws_above_3": 0.715,
+                "why_it_matters": "fewer than one worm in twenty is drawn with a physically "
+                    "plausible drag ratio and seven in ten are above 3. The detector is "
+                    "trained almost entirely on animals that swim in a way real nematodes "
+                    "do not. It is a free parameter with a known physical value, which "
+                    "makes it the most obviously mis-set knob in the simulator.",
+            },
+            "wave_amplitude_is_gated_at_a_fixed_rate": {
+                "code": "r = 0.5 + jnp.abs(jnp.sin(2 * jnp.pi * t)) * 0.5, in _theta",
+                "what_it_does": "multiplies the travelling-wave amplitude by an envelope "
+                    "running between 0.5 and 1.0.",
+                "envelope_period_s": 0.5,
+                "envelope_hz": 2.0,
+                "independent_of_T": True,
+                "why_it_matters": "the undulation period T is a sampled parameter, default "
+                    "normal(0.8, 0.1) seconds, but this envelope is hardcoded and does not "
+                    "follow it. At the default 0.55 s clip the gate completes 1.10 cycles "
+                    "while the undulation itself completes 0.69, so the amplitude is "
+                    "modulated faster than the stroke it modulates, at a rate no sampled "
+                    "parameter can change. Any sweep over T leaves it untouched, and it is "
+                    "not in the 27 settings simconfig.py lifts out, because it is a "
+                    "structural choice rather than a setting.",
+            },
+            "a_flag_that_does_nothing": {
+                "flag": "--sim_dropout",
+                "what_happens": "train.py defines it and writes it into experiment.json, but "
+                    "calls simulate(key, nworms, clip_duration, nframes, size, kpoints) with "
+                    "no eighth argument, so simulate's dropout parameter stays at its default "
+                    "of 0 and drop_param never runs.",
+                "would_not_work_anyway": "drop_param branches on Python's random.random() "
+                    "inside a function traced under vmap and pmap, so the choice would be "
+                    "frozen into the compiled function rather than redrawn per batch.",
+            },
+            "defaults_are_not_the_published_configuration": {
+                "wloss_s": {"repo_default": 100.0, "published_run": 20.0},
+                "wloss_p": {"repo_default": 100000.0, "published_run": 1e11},
+                "batch_size": {"repo_default": 40, "published_run": 128},
+                "warmup": {"repo_default": 100, "published_run": 1000},
+                "why_it_matters": "a run launched with train.py's defaults differs from the "
+                    "released model in the loss weighting by six orders of magnitude on the "
+                    "latent term, before any simulator setting is touched.",
+            },
+            "frame_rate_already_matches": "the shipped real clip celegans_512.avi is 20 fps, "
+                "and the default clip_duration 0.55 s over nframes 11 is exactly 20 fps. The "
+                "temporal sampling was already tuned to the camera.",
+        },
         "limits": [
             "No swept configuration was trained, so every configuration's real_score is "
             "null and the thesis test has no verdict. The machine holding the GPU went "
@@ -333,10 +403,14 @@ def main():
             "0.0 because that is five orders of magnitude short of the published "
             "training, not because the default settings are bad. Read it as a gate that "
             "failed, not as a score for the repo's simulator.",
-            "The baseline is the authors' published weights, trained for at least 3.1e8 "
-            "clip-samples on eight A5000s. Anything trainable on one GTX 1060 in a night "
-            "sees about 0.03 percent of that, so swept scores would not have been "
-            "comparable to it and were to be compared against a defaults run instead.",
+            "The baseline is the authors' published weights. The device count is not in "
+            "the repository, but it is in the paper: the Methods, under Training details, "
+            "say 'training has been carried out on a cluster of 8 x NVIDIA A5000's'. With "
+            "experiment.json's 300000 steps at batch 128 per device that is 3.1e8 "
+            "clip-samples, and the released parameters carry 338800 optimizer updates "
+            "against a resumed checkpoint, so it is a floor. Anything trainable on one GTX "
+            "1060 in a night sees about 0.03 percent of that, so swept scores would not "
+            "have been comparable to it and were to be compared against a defaults run.",
             "Four of the sixteen configurations hold the repo's own values on their axis "
             "and are therefore identical to the defaults. They are kept as reference "
             "points and flagged with is_repo_default_on_its_axis, but the sweep really "

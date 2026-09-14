@@ -46,8 +46,8 @@ and a real detection limit has to degrade as the field crowds. Corrected, it doe
 1. **The baseline.** What the published model does on real footage, and what the same
    architecture does when retrained here at a shorter schedule. Every swept number is
    compared against the retrained figure, because comparing against weights trained three
-   hundred thousand steps on eight devices would measure the schedule rather than the
-   simulator.
+   hundred thousand steps on the eight A5000s the paper's Methods record would measure the
+   schedule rather than the simulator.
 2. **One setting at a time.** Sixteen configurations across four axes: worm length, body
    radius, drag anisotropy and sensor noise. Each is a full retrain and a full scoring
    run, changing one thing.
@@ -120,6 +120,28 @@ Only 44 percent of real worms fall inside the length range the simulator can pro
 median length of 23.8 px against about 30 px for those recorded on 14 February. A single
 setting cannot match both, which is a limit on the whole approach rather than on this
 sweep.
+
+## Five things found by reading the simulator rather than sweeping it
+
+None of these needed a trained model, and only the first is something a sweep over
+simulator settings actually moves. They are on the page under "Some of what is wrong is
+not a setting", and in `data/results.json` under `simulator_findings`.
+
+1. The drag ratio, which decides how a worm turns undulation into forward motion, is drawn
+   from `abs(normal(loc=4, scale=4) + 1.0)`. Slender body theory puts it near 1.5 to 2 for
+   a slender cylinder. Sampling that line two million times gives a median of 5.06, with
+   4.8 percent of draws in the physical range and 71.5 percent above 3.
+2. The travelling wave's amplitude is multiplied by `0.5 + abs(sin(2 * pi * t)) * 0.5`,
+   an envelope that repeats every 0.5 s regardless of the sampled undulation period. At
+   the default 0.55 s clip the gate completes 1.10 cycles against the stroke's 0.69, and
+   no sampled parameter changes it.
+3. `--sim_dropout` is defined, written into `experiment.json`, and never passed to
+   `simulate`, so `drop_param` never runs. It would not work if it were passed, because
+   `drop_param` branches on `random.random()` inside a traced function.
+4. The repository defaults are not the published configuration: `wloss_p` 1e5 against
+   1e11, `wloss_s` 100 against 20, batch 40 against 128, warmup 100 against 1000.
+5. The temporal sampling was already matched to the camera. The shipped clip is 20 fps and
+   `clip_duration` 0.55 over `nframes` 11 is exactly 20 fps.
 
 ## The part that took the work
 

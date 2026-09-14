@@ -22,3 +22,6 @@ __pycache__/
 # study/build_page_data.py at publish time, never committed from a fixture.
 data/results.json
 docs/data.js
+
+# Console log from the repeated statistics sweep. The JSON it writes is tracked.
+stats_seeds.log

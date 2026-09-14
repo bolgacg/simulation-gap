@@ -53,6 +53,11 @@ OPTIONAL = {
     "defaults_run.not_achievable_because": "act one cannot say WHY the learning curve is flat, so a reader cannot tell a schedule that was chosen too short from a machine that never came back",
     "defaults_run.repeats": "act two cannot separate a real difference between settings from run-to-run chance, so it will refuse to say which setting is worth tuning and will call the ordering a lead rather than a finding",
     "limits": "the limits box falls back to generic wording",
+    "simulator_findings.drag_anisotropy_prior_is_unphysical": "the reading-the-simulator section loses the one finding of its five that the sweep can actually reach, and its opening sentence silently changes to a weaker claim",
+    "simulator_findings.wave_amplitude_is_gated_at_a_fixed_rate": "the section loses the clearest case of a defect that no setting can move, which is the whole reason the section exists",
+    "simulator_findings.a_flag_that_does_nothing": "the section loses the dead --sim_dropout flag",
+    "simulator_findings.defaults_are_not_the_published_configuration": "the section loses the table showing that a run started from the repository defaults differs from the released model before any simulator setting is touched",
+    "simulator_findings.frame_rate_already_matches": "the section becomes a list of criticisms with nothing the simulator gets right, which misrepresents it",
     "hardware.startup_seconds": "the method section cannot say how much of a run is compilation, which is the fact that decides how a sweep should be shaped on one card",
     "hardware.seconds_per_step": "same as above; both are needed together",
 }
