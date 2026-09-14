@@ -49,9 +49,43 @@ AXES = [
 ]
 
 
+GATE_SEGMENT_STEPS = 200
+GATE_EVAL_CLIPS = 40
+
+
+def gate_curve():
+    """
+    The defaults learning curve, if the gate run produced one.
+
+    Training ran in segments that resume each other, so segment i is the model after
+    i * GATE_SEGMENT_STEPS steps. Each point is scored on the first GATE_EVAL_CLIPS
+    real clips rather than all 178, to keep scoring cheap next to training.
+    """
+    runs = ROOT / "runs" / "defaults"
+    if not runs.is_dir():
+        return None, None
+    points = []
+    for f in sorted(runs.glob("score_seg*.json")):
+        i = int(f.stem.replace("score_seg", ""))
+        d = json.loads(f.read_text())
+        points.append({
+            "steps": i * GATE_SEGMENT_STEPS,
+            "real_score": d["recall"],
+            "real_score_region": d.get("region_recall"),
+            "median_adtw_px": d.get("median_adtw_px"),
+            "predictions": d.get("predictions"),
+            "scored_on_clips": GATE_EVAL_CLIPS,
+            "cap_bound_on_clips": d.get("cap_bound_on_clips"),
+        })
+    if not points:
+        return None, None
+    return points, points[-1]["real_score"]
+
+
 def main():
     stats = json.loads((DATA / "stats_sweep.json").read_text())
     base = json.loads((DATA / "baseline_real_corrected.json").read_text())
+    curve, last_score = gate_curve()
 
     by_axis_default = {a["key"]: a["default_value"] for a in AXES}
 
@@ -171,11 +205,23 @@ def main():
         },
         "defaults_run": {
             "what": "trained here at the reduced size with the repo's own default settings",
-            "real_score": None,
-            "learning_curve": None,
+            "real_score": last_score,
+            "learning_curve": curve,
             "repeats": None,
-            "failed_because": "not trained: gene unreachable over Tailscale from 22:45 on "
-                              "14 Sep through the rest of the session",
+            "scored_on_clips": GATE_EVAL_CLIPS if curve else None,
+            "reduced_size": {
+                "frame_px": 128, "nworms": 30, "batch_size": 4, "nframes": 11,
+                "kpoints": 49, "npca": 12, "latent_dim": 8,
+                "note": "trained on this laptop's CPU at 3.8 s a step because gene, which "
+                        "holds the GPU, was unreachable. The frame and worm count are "
+                        "reduced; kpoints, npca, latent_dim and n_suggestions are kept at "
+                        "the published values so the model has the same shape as the "
+                        "released one. It is scored at the full 256 px, which a fully "
+                        "convolutional detector allows.",
+            } if curve else None,
+            "failed_because": None if curve else (
+                "not trained: gene unreachable over Tailscale from 22:45 on 14 Sep "
+                "through the rest of the session"),
         },
         "axes": AXES,
         "configs": configs,
@@ -210,19 +256,38 @@ def main():
                            "0.802 for the repo's 37.5 px, which agrees with the direct "
                            "measurement that real centrelines have a median of 29.5 px "
                            "against the simulator's 37.5 px mean.",
-            "radius_axis_warning": "the aggregate distance prefers thicker worms, 0.540 at "
-                                   "R=1.2 against 0.802 at the repo's R=0.8, and that is a "
-                                   "confound rather than a finding. The granulometry "
-                                   "statistics, the ones that actually measure body width, "
-                                   "prefer the repo value and R=0.4 (z of 0.76 against 1.0 "
-                                   "for R=1.2), agreeing with the labelled measurement that "
-                                   "real bodies are 2.50 px wide against 2.70 px simulated. "
-                                   "What pulls R=1.2 to the top is the motion statistics: "
-                                   "synthetic clips change too much between frames relative "
-                                   "to their spatial contrast, and thickening the bodies "
-                                   "raises that contrast and hides the mismatch. A scalar "
-                                   "distance lets one setting buy down error on statistics "
-                                   "it has no business affecting.",
+            "radius_axis_warning": "the unlabelled statistics want thicker worms than the "
+                                   "repo ships, 0.540 at R=1.2 against 0.802 at R=0.8, and "
+                                   "they want it robustly: every subset of the statistics "
+                                   "agrees, spatial only, granulometry only and motion only "
+                                   "all rank R=1.2 or R=1.6 above R=0.8. The direct labelled "
+                                   "measurement says the opposite, that real bodies are 2.50 "
+                                   "px wide against 2.70 px already simulated at R=0.8. The "
+                                   "granulometry curves show why they disagree, and it is not "
+                                   "that either is noisy. Real frames retain more bright "
+                                   "signal than synthetic ones at EVERY opening radius: at "
+                                   "R=0.8 the shortfall is +0.037, +0.069, +0.095, +0.106, "
+                                   "+0.112 at radii 1, 2, 3, 4 and 6. Thickening the bodies "
+                                   "closes the small-scale gap, R=1.6 reaches +0.003 and "
+                                   "+0.005 at radii 1 and 2, while widening the large-scale "
+                                   "one to +0.106, +0.147 and +0.158. No body radius "
+                                   "reproduces the shape of the real curve, because real "
+                                   "frames carry bright structure at scales larger than a "
+                                   "worm that the simulator does not produce at any radius, "
+                                   "plate debris and out-of-focus material being the obvious "
+                                   "candidates. A scalar distance has only one lever on that "
+                                   "error, so it turns 'this simulator cannot make images "
+                                   "like these' into 'make the worms thicker'. That is the "
+                                   "failure mode the thesis has to survive, and it is visible "
+                                   "before a single model is trained.",
+            "ranking_depends_on_statistic_choice": "the length axis reverses depending on "
+                                   "which statistics are used: spatial statistics alone "
+                                   "prefer the longest setting tested (L_35_55 at 0.654), "
+                                   "while granulometry alone and motion alone both prefer the "
+                                   "shortest (L_20_30 at 0.777 and 0.889). The combined "
+                                   "ranking follows the latter. Nothing in the method fixes "
+                                   "the weighting, so the ordering on this axis is a choice "
+                                   "as much as a measurement.",
             "motion_axis": "drag anisotropy is barely separated, 0.787 to 0.802 across the "
                            "range tested against a spread of 0.54 to 3.39 on the other axes, "
                            "so these statistics cannot rank it.",
@@ -242,9 +307,13 @@ def main():
             "Only four simulator settings are swept out of the 27 that sweep/simconfig.py "
             "lifts out of the code. That is a sample of the simulator, not a survey of it.",
             "The unlabelled distance is a mean absolute z-score over fourteen statistics "
-            "weighted equally. Nothing justifies equal weighting, and the body radius "
-            "result shows a scalar distance can be driven by statistics unrelated to the "
-            "setting being varied.",
+            "weighted equally. Nothing justifies equal weighting, and on the worm length "
+            "axis the ordering reverses depending on which statistics are included.",
+            "On body radius the unlabelled statistics and the direct labelled measurement "
+            "point in opposite directions, and the granulometry curves show no setting on "
+            "that axis can reproduce the real one. Treat the radius ranking as evidence "
+            "that the simulator is missing a source of large-scale image structure, not as "
+            "advice to thicken the worms.",
             "Precision is a lower bound. The labelling is concentrated in a disc covering "
             "a quarter of the frame, which is corrected for here, but a labeller marking a "
             "constant fraction of the worms inside that disc cannot be excluded from these "

@@ -400,14 +400,19 @@
     if (v) {
       v.innerHTML = (f.radius_axis_warning
         ? '<b>The thing worth taking from this act, and it is a warning rather than a result.</b> ' +
-          cap1(esc(f.radius_axis_warning)) + ' If a tuning loop is driven by a single distance over many ' +
-          'statistics, it can be talked into the wrong answer on one axis by an error on a different ' +
-          'one, and nothing in the number says it happened. That is visible here before any model has ' +
-          'been trained, which is the cheapest place to find it.'
+          cap1(esc(f.radius_axis_warning)) + ' <b>So a laboratory tuning on this statistic would thicken ' +
+          'its worms and never find what is actually missing from its simulator.</b> The distance has one ' +
+          'lever on an error that has nothing to do with body radius, so it pulls that lever. Nothing in ' +
+          'the number says it happened, and it is visible here with no labels and no training, which is ' +
+          'the cheapest place there is to find it.'
         : '') +
-        (f.noise_axis ? ' <br><br><b>Two things that do hold.</b> ' + cap1(esc(f.noise_axis)) : '') +
-        (f.length_axis ? ' And ' + esc(f.length_axis) : '') +
-        (f.motion_axis ? ' <br><br><b>And one axis these statistics cannot see.</b> ' + cap1(esc(f.motion_axis)) : '');
+        (f.noise_axis ? ' <br><br><b>One thing that holds under every subset of the statistics.</b> ' +
+          cap1(esc(f.noise_axis)) : '') +
+        (f.ranking_depends_on_statistic_choice
+          ? ' <br><br><b>One that does not.</b> ' + cap1(esc(f.ranking_depends_on_statistic_choice)) : '') +
+        (f.length_axis ? ' ' + cap1(esc(f.length_axis)) : '') +
+        (f.motion_axis ? ' <br><br><b>And one axis these statistics cannot see at all.</b> ' +
+          cap1(esc(f.motion_axis)) : '');
     }
   }
 
