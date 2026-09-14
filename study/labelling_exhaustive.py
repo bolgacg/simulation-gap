@@ -237,6 +237,12 @@ def label_region(labels, size=256):
         "frame_px": size,
         "boxes": boxes,
         "smallest_box_holding_97_pct": chosen,
+        "two_explanations": (
+            "someone labelled the middle of each crop and left the edges, or the crops were cut around "
+            "something already found so the worms of interest sit centrally by construction and the "
+            "labelling inside that region is complete. These files cannot separate the two, and the "
+            "consequence for scoring is identical either way"
+        ),
         "consequence_for_precision": (
             "detections are counted over the whole frame while labels exist only in part of it, "
             "so a correct detection outside the labelled region is scored as a false positive. "

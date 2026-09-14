@@ -690,8 +690,12 @@
       parts.push('<b>Looking directly is what found something.</b> The labels are not spread across the ' +
         'crop. ' + bx.points_inside_pct + ' percent of every clicked point falls inside a central ' +
         bx.side_px + ' pixel box, which is ' + bx.area_share_pct + ' percent of the ' + reg.frame_px +
-        ' pixel frame. Whoever labelled these worked in the middle of each crop. That mode passes both ' +
-        'tests above, which is why neither saw it.');
+        ' pixel frame. That mode passes both tests above, which is why neither saw it.');
+      parts.push('Two things could put the labels there and this page cannot tell them apart. Someone ' +
+        'may have labelled the middle of each crop and left the edges. Or the crops may have been cut ' +
+        'around something already found, so the worms of interest sit in the centre by construction and ' +
+        'the labelling inside that region is complete. <b>The consequence for scoring is the same either ' +
+        'way</b>, which is why the distinction is worth naming and then setting aside.');
       parts.push('<b>So the precision quoted in act one is badly understated, and not by a little.</b> ' +
         'Detections are counted over the whole frame while labels exist in about ' + bx.area_share_pct +
         ' percent of it, so a correct detection in the unlabelled majority is recorded as a false ' +

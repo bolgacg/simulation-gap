@@ -156,6 +156,7 @@
    "area_share_pct": 39.1,
    "points_inside_pct": 97.3
   },
+  "two_explanations": "someone labelled the middle of each crop and left the edges, or the crops were cut around something already found so the worms of interest sit centrally by construction and the labelling inside that region is complete. These files cannot separate the two, and the consequence for scoring is identical either way",
   "consequence_for_precision": "detections are counted over the whole frame while labels exist only in part of it, so a correct detection outside the labelled region is scored as a false positive. Precision over the whole frame is therefore an underestimate by roughly the ratio of frame area to labelled area, and the only fix is to score detections inside the labelled region alone."
  },
  "what_is_ruled_out": [
