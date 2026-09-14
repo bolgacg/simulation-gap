@@ -45,7 +45,66 @@
  "r_squared_through_origin": 0.9744,
  "pearson_r": 0.9877,
  "verdict_exhaustive": true,
+ "verdict_exhaustive_caveat": "proportionality is consistent with exhaustive labelling and rules out a fixed quota, but it cannot rule out a constant fraction, so precision is a lower bound",
  "what_it_means_for_the_page": "labelling tracks density closely enough to treat each crop as fully labelled, so an unmatched detection counts as a false positive and precision is reportable",
+ "crossing_scaling": {
+  "what_it_measures": "how the number of crossings between labelled worms grows with the number of labelled worms in a clip. Marking every worm regardless of difficulty makes crossings grow roughly as the square of the count, because every pair can cross. Skipping tangled worms would flatten that.",
+  "by_density": {
+   "1.0": {
+    "clips": 15,
+    "worms_per_clip": 1.33,
+    "crossings_per_clip": 0.0
+   },
+   "1.5": {
+    "clips": 19,
+    "worms_per_clip": 2.37,
+    "crossings_per_clip": 0.0
+   },
+   "2.0": {
+    "clips": 15,
+    "worms_per_clip": 2.8,
+    "crossings_per_clip": 0.07
+   },
+   "3.0": {
+    "clips": 17,
+    "worms_per_clip": 3.88,
+    "crossings_per_clip": 0.12
+   },
+   "4.0": {
+    "clips": 25,
+    "worms_per_clip": 6.24,
+    "crossings_per_clip": 1.04
+   },
+   "6.0": {
+    "clips": 23,
+    "worms_per_clip": 10.09,
+    "crossings_per_clip": 1.57
+   },
+   "8.0": {
+    "clips": 19,
+    "worms_per_clip": 9.53,
+    "crossings_per_clip": 1.63
+   },
+   "10.0": {
+    "clips": 19,
+    "worms_per_clip": 14.42,
+    "crossings_per_clip": 2.42
+   },
+   "13.0": {
+    "clips": 26,
+    "worms_per_clip": 17.58,
+    "crossings_per_clip": 5.0
+   }
+  },
+  "exponent": 2.31,
+  "quadratic_would_be": 2.0,
+  "verdict_includes_tangles": true
+ },
+ "what_is_ruled_out": [
+  "a fixed number of labels per clip, because labels rise in proportion to density",
+  "skipping the tangled worms, because crossings between labelled worms grow close to the square of the count, which is what marking every worm in a dense field produces"
+ ],
+ "what_is_not_ruled_out": "labelling a constant fraction of the worms in every clip. That produces a line through the origin as well, with a smaller slope and an equally good fit, and no geometry in these files can distinguish it. The consequence is that the measured precision is a lower bound: if only a fraction were labelled, some unmatched detections are real worms nobody clicked, and the true precision is higher than the number reported.",
  "simulator_length_coverage": {
   "what_it_measures": "the share of hand-drawn real worms whose length falls inside the range the simulator draws from. A worm outside it is one the model was never shown.",
   "simulator_length_range_px": [

@@ -390,9 +390,10 @@
       // On a partially labelled set it would be a number about the labelling effort.
       ((D.baseline_per_clip && D.baseline_per_clip.stated && D.baseline_per_clip.stated.precision != null &&
         (D.labelling_check || {}).verdict_exhaustive)
-        ? '<div><div class="k">Its precision</div><div class="n">' + num(D.baseline_per_clip.stated.precision) +
+        ? '<div><div class="k">Its precision</div><div class="n">&ge; ' + num(D.baseline_per_clip.stated.precision) +
           '</div><div class="s">' + n(D.baseline_per_clip.stated.predictions) + ' detections against ' +
-          n(D.baseline_per_clip.stated.labels) + ' labelled worms, at the repository\'s own default threshold</div></div>'
+          n(D.baseline_per_clip.stated.labels) + ' labelled worms, at the repository\'s own confidence ' +
+          'threshold of 0.5. A lower bound, because unlabelled worms count against it</div></div>'
         : '') +
       '<div><div class="k">Metric</div><div class="n" style="font-size:15px">' + esc(m.name || 'n/a') +
       '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
@@ -562,7 +563,10 @@
         'so comparing against them would measure the schedule rather than the simulator.'],
       // The description already carries the cutoff, so repeating it reads as two numbers
       // where there is one. It is only appended when the description does not mention it.
-      ['Scored by', esc(m.what_it_measures || m.name || 'a matching metric') +
+      ['Scored by', (function (w) { return /[.!?]$/.test(w) ? w : w + '.'; })(esc(m.what_it_measures || m.name || 'a matching metric')) +
+        ' The distance is an average along the labelled centreline, not a worst case. Detections are ' +
+        'taken at the repository\'s own confidence threshold of 0.5 with its own overlap suppression, ' +
+        'so precision is a property of the model at that setting.' +
         ((m.cutoff_px != null && !/pixel/i.test(m.what_it_measures || ''))
           ? ', at a cutoff of ' + m.cutoff_px + ' pixels' : '') + '.'],
       ['Where', miss(hw.where) + ', ' + miss(hw.gpu) + ', through ' + miss(hw.backend) + '.'],
@@ -611,7 +615,8 @@
       host.innerHTML = '<b>Matched.</b> Adding up the ' + Object.keys(bp.sections).length +
         ' clips here gives ' + found + ' of ' + lab + ' labelled worms found, a recall of ' +
         num(recall) + ', and ' + claimed + ' of ' + pred + ' detections matching something, a precision of ' +
-        num(precision) + '. Both are what the study reported. Note that ' + found + ' labels were matched by ' +
+        num(precision) + ', which is a lower bound for the reason the next section gives. Both are what ' +
+        'the study reported. Note that ' + found + ' labels were matched by ' +
         claimed + ' detections: ' + (found - claimed) + ' of them sat within the cutoff of a detection that ' +
         'also matched another worm, which is the overlapping case this detector was built for, so precision ' +
         'counts distinct detections rather than labels.';
@@ -641,16 +646,27 @@
     var keys = Object.keys(by).sort(function (a, b) { return Number(a) - Number(b); });
     if (!keys.length) { text.textContent = 'Not checked.'; return; }
     var first = keys[0], last = keys[keys.length - 1];
+    var cs = lc.crossing_scaling;
     text.innerHTML = lc.verdict_exhaustive
-      ? 'Yes. The clips come from videos at stated worm densities from ' + Number(first) + ' to ' +
-        Number(last) + ' times. If a human labelled every worm in a crop, labels per crop have ' +
-        'to rise in proportion to that density on a line through the origin, because no worms means no ' +
-        'labels. A fixed quota per crop does not behave that way. Measured: ' +
-        by[first].mean_labels + ' labels a clip at the lowest density rising to ' +
-        by[last].mean_labels + ' at the highest, a fit of ' +
-        lc.slope_labels_per_unit_density + ' labels per unit density with an R squared of ' +
-        lc.r_squared_through_origin + ' through the origin. So an unmatched detection is a false ' +
-        'positive and precision means what it says.'
+      ? 'Partly, and the part that fails is worth stating. The clips come from videos at stated ' +
+        'worm densities from ' + Number(first) + ' to ' + Number(last) + ' times. If a human marked ' +
+        'every worm in a crop, labels per crop rise in proportion to that density on a line through ' +
+        'the origin, because no worms means no labels. Measured: ' + by[first].mean_labels +
+        ' labels a clip at the lowest density rising to ' + by[last].mean_labels + ' at the highest, ' +
+        'a fit of ' + lc.slope_labels_per_unit_density + ' labels per unit density with an R squared of ' +
+        lc.r_squared_through_origin + ' through the origin. <b>That rules out a fixed quota per clip ' +
+        'and nothing more.</b> Someone marking half the worms in every clip would also produce a line ' +
+        'through the origin, with half the slope and a fit just as good, and no geometry in these ' +
+        'files separates the two.' +
+        (cs ? ' A second test rules out the way a human actually labels partially, which is to skip ' +
+          'the hard ones. The hard case here is a worm crossing another worm, and in a field of n ' +
+          'labelled worms there are n(n-1)/2 pairs that could cross, so marking every worm regardless ' +
+          'of difficulty makes crossings grow as roughly the square of the count. Measured exponent: ' +
+          cs.exponent + ' against ' + cs.quadratic_would_be + ' for the quadratic. The tangled worms ' +
+          'are in the labels.' : '') +
+        ' <b>So precision below is a lower bound, not a false-alarm rate.</b> If some constant ' +
+        'fraction went unlabelled, part of what is counted as a false positive is a real worm nobody ' +
+        'clicked, and the true precision is higher than the number reported.'
       : 'No. Labels per clip do not track the stated worm density, so an unmatched detection may ' +
         'well be a real worm nobody clicked. Precision is therefore not reported anywhere above, ' +
         'and the page shows recall and distance only.';

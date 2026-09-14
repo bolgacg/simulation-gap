@@ -109,6 +109,73 @@ def length_coverage(labels):
     }
 
 
+def crossing_scaling(labels):
+    """Does the labelling include the tangled worms, or only the easy ones?
+
+    Proportionality to density rules out a fixed quota per clip. It does not rule out a
+    fixed fraction: someone marking half the worms in every clip produces a line through
+    the origin too, with half the slope and the same fit. So a second test is needed for
+    the way a human actually labels partially, which is to skip the hard cases.
+
+    The hard case here is a worm crossing another worm, which is the whole reason this
+    detector exists. In a field of n labelled worms there are n(n-1)/2 pairs that could
+    cross, so if every worm is marked regardless of difficulty the number of crossings
+    grows roughly as the square of the count. A labeller avoiding tangles would give a
+    flatter exponent, because the crossings are exactly what they skipped.
+    """
+    def segments_of(spline):
+        xs, ys = spline["x"], spline["y"]
+        return [((xs[i], ys[i]), (xs[i + 1], ys[i + 1])) for i in range(len(xs) - 1)]
+
+    def segments_cross(p1, p2, p3, p4):
+        def side(a, b, c):
+            return (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])
+        d1, d2 = side(p3, p4, p1), side(p3, p4, p2)
+        d3, d4 = side(p1, p2, p3), side(p1, p2, p4)
+        return ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0))
+
+    per = collections.defaultdict(lambda: {"clips": 0, "worms": 0, "crossings": 0})
+    for clip, rec in labels.items():
+        dn = density_of(clip)
+        if dn is None:
+            continue
+        splines = [s for s in rec["splines"] if len(s["x"]) >= 2]
+        row = per[dn]
+        row["clips"] += 1
+        row["worms"] += len(splines)
+        segs = [segments_of(s) for s in splines]
+        for i in range(len(segs)):
+            for j in range(i + 1, len(segs)):
+                if any(segments_cross(a[0], a[1], b[0], b[1]) for a in segs[i] for b in segs[j]):
+                    row["crossings"] += 1
+
+    xs, ys = [], []
+    rows = {}
+    for dn in sorted(per):
+        r = per[dn]
+        wpc, cpc = r["worms"] / r["clips"], r["crossings"] / r["clips"]
+        rows[str(dn)] = {"clips": r["clips"], "worms_per_clip": round(wpc, 2),
+                         "crossings_per_clip": round(cpc, 2)}
+        if cpc > 0:
+            xs.append(math.log(wpc))
+            ys.append(math.log(cpc))
+    if len(xs) < 3:
+        return None
+    slope = float(np.polyfit(xs, ys, 1)[0])
+    return {
+        "what_it_measures": (
+            "how the number of crossings between labelled worms grows with the number of "
+            "labelled worms in a clip. Marking every worm regardless of difficulty makes "
+            "crossings grow roughly as the square of the count, because every pair can cross. "
+            "Skipping tangled worms would flatten that."
+        ),
+        "by_density": rows,
+        "exponent": round(slope, 2),
+        "quadratic_would_be": 2.0,
+        "verdict_includes_tangles": bool(slope >= 1.7),
+    }
+
+
 def main():
     with open(LABELS) as f:
         labels = json.load(f)
@@ -151,6 +218,10 @@ def main():
         "r_squared_through_origin": round(r2, 4),
         "pearson_r": round(r, 4),
         "verdict_exhaustive": bool(exhaustive),
+        "verdict_exhaustive_caveat": (
+            "proportionality is consistent with exhaustive labelling and rules out a fixed quota, "
+            "but it cannot rule out a constant fraction, so precision is a lower bound"
+        ),
         "what_it_means_for_the_page": (
             "labelling tracks density closely enough to treat each crop as fully labelled, "
             "so an unmatched detection counts as a false positive and precision is reportable"
@@ -159,6 +230,27 @@ def main():
             "worm. Precision is not reportable and the page must report recall and distance only."
         ),
     }
+
+    crossings = crossing_scaling(labels)
+    if crossings:
+        result["crossing_scaling"] = crossings
+
+    # What the two tests together do and do not establish. Stated here rather than on
+    # the page, so the page quotes it instead of paraphrasing it.
+    result["what_is_ruled_out"] = [
+        "a fixed number of labels per clip, because labels rise in proportion to density",
+        ("skipping the tangled worms, because crossings between labelled worms grow close to "
+         "the square of the count, which is what marking every worm in a dense field produces")
+        if crossings and crossings["verdict_includes_tangles"] else
+        "nothing about tangled worms: the crossing test did not run or did not support it",
+    ]
+    result["what_is_not_ruled_out"] = (
+        "labelling a constant fraction of the worms in every clip. That produces a line through "
+        "the origin as well, with a smaller slope and an equally good fit, and no geometry in "
+        "these files can distinguish it. The consequence is that the measured precision is a "
+        "lower bound: if only a fraction were labelled, some unmatched detections are real worms "
+        "nobody clicked, and the true precision is higher than the number reported."
+    )
 
     cov = length_coverage(labels)
     if cov:

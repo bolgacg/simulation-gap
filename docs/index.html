@@ -168,7 +168,8 @@ tr.on td{background:#eef2f7}
         is known by construction, then close the distance to real experiments.</li>
       <li>The simulator has settings, and someone chose them. This page asks <b>which of those
         choices the result actually depends on</b>, by changing one at a time, retraining, and
-        scoring against real footage a human labelled.</li>
+        scoring against real footage a human labelled. Four settings are swept here, not all of
+        them, and which four is stated in act two.</li>
       <li>Then the real question: can you pick good settings <b>without any labels at all</b>, just
         by making the synthetic images look statistically like the real ones? That is the part of
         the project that would matter in a laboratory, and it is the last act.</li>
@@ -184,15 +185,22 @@ tr.on td{background:#eef2f7}
     <div class="card-title">Terms</div>
     <div class="gloss">
       <div><b>simulator setting</b> One of the numbers deciding what a synthetic worm looks like
-        and how it moves. There are 27 of them and none is exposed as a command-line option.</div>
+        and how it moves. The training script exposes six flags that reach the simulator, covering
+        how many worms and how big the frame is. Everything about the worm itself is a literal
+        inside two source files; this study lifted 27 of those into a configuration object, which
+        is a count of what was lifted rather than a census of what exists.</div>
       <div><b>real score</b> How well a trained model finds the worms a human marked in real
         footage. Higher is better. It is a <b>recall</b>: of the worms a human marked, the share the
-        model found, counting a worm as found when the predicted body line sits within three pixels
-        of the drawn one.</div>
+        model found. A worm counts as found when the <b>average</b> distance from the drawn
+        centreline to the predicted one, along the drawn one, is under three pixels. It is an
+        average and not a worst case, so a prediction can be well off at the head and still pass if
+        the rest of the body is close.</div>
       <div><b>precision</b> The other half of the same picture: of everything the model claimed was
-        a worm, the share that matched something a human marked. Low precision means the model cries
-        wolf. It is only a meaningful number if the human marked every worm, which is checked at the
-        bottom of this page rather than assumed.</div>
+        a worm, the share that matched something a human marked. It depends on the confidence
+        threshold the detector is run at, which here is the repository's own default of 0.5, so it is
+        a property of the model at that setting rather than of the model. And it is a lower bound:
+        the check at the bottom of this page cannot rule out that some worms went unlabelled, and an
+        unlabelled worm counts against precision unfairly.</div>
       <div><b>image statistics</b> Numbers describing what a frame looks like, computed the same
         way on synthetic and real footage, using no labels.</div>
       <div><b>the gap</b> The distance between doing well on synthetic frames and doing well on
@@ -237,9 +245,11 @@ tr.on td{background:#eef2f7}
 <section id="act2"><div class="wrap">
   <div class="sec-label">Act two</div>
   <h2>One setting at a time</h2>
-  <p class="why"><b>Why this matters</b> A simulator with 27 settings has 27 ways to be wrong, and
-  a laboratory cannot tune all of them. Knowing which ones the result actually moves with is what
-  decides where the effort goes.</p>
+  <p class="why"><b>Why this matters</b> A simulator has many ways to be wrong and a laboratory
+  cannot tune all of them, so knowing which ones the result actually moves with is what decides
+  where the effort goes. <b>Four settings are swept here</b>, chosen because each changes something
+  physically different about the worm or the image. That is a sample of the simulator, not a survey
+  of it, and nothing here speaks for the settings that were left alone.</p>
   <p class="lede">Each row is one setting of the simulator, moved away from what the authors chose,
   with a model trained from scratch on the result and scored on the same real footage.</p>
   <div class="chips" id="axischips" role="group" aria-label="Choose a simulator setting"></div>
