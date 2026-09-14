@@ -93,9 +93,57 @@ def frame_stats(img):
     return stats
 
 
+def temporal_stats(clip):
+    """
+    How much the picture changes between frames, with no labels and no tracking.
+
+    Body radius and noise show up in a single frame, but drag anisotropy only
+    changes how the animals move, so a per-frame statistic is blind to it. The mean
+    absolute frame difference, and the same quantity divided by the spatial spread,
+    give the motion axis something to be ranked on.
+
+    clip must be normalised as a whole, not frame by frame, or the per-frame scaling
+    would absorb exactly the differences being measured.
+    """
+    d = np.abs(np.diff(clip, axis=0))
+    sd = float(clip.std())
+    mad = float(d.mean())
+    return {
+        "frame_diff_mean": mad,
+        "frame_diff_over_sd": float(mad / sd) if sd > 1e-9 else 0.0,
+        "frame_corr": float(
+            np.mean([
+                np.corrcoef(clip[i].ravel(), clip[i + 1].ravel())[0, 1]
+                for i in range(len(clip) - 1)
+            ])
+        ),
+    }
+
+
+def clip_stats(clip):
+    """
+    Full statistic vector for one 11-frame clip, already prepared and normalised.
+
+    Spatial statistics come from the middle frame, the one the labels describe;
+    temporal statistics use the whole stack.
+    """
+    stats = frame_stats(clip[len(clip) // 2])
+    stats.update(temporal_stats(clip))
+    return stats
+
+
+def prepare_real_clip(frames):
+    """frames is (11, H, W) uint8, dark worms on a bright plate."""
+    return normalise(255.0 - np.asarray(frames, dtype=np.float64))
+
+
+def prepare_synthetic_clip(frames):
+    return normalise(np.asarray(frames, dtype=np.float64))
+
+
 STAT_KEYS = ["q50", "q90", "q99", "fg_frac", "grad_mean", "grad_q99"] + [
     f"open_r{r}" for r in GRANULOMETRY_RADII
-]
+] + ["frame_diff_mean", "frame_diff_over_sd", "frame_corr"]
 
 
 def pool(frames_stats):

@@ -274,6 +274,78 @@ would move the simulator to shorter and thinner worms than the repo ships. That 
 real, testable prediction for the study, and the knobs to make it are the ones the
 repo does not expose.
 
+### Act three: the unlabelled statistics, complete for all 16 configurations
+
+`sweep/unlabelled_stats.py` and `sweep/run_stats_sweep.py`, output in
+`data/stats_sweep.json`, rolled into `data/results.json`.
+
+The first version of this used `sim_stats.py`, and that was wrong for the purpose.
+On the real side it measures worm length and body width using the hand labels to know
+where the worms are. Fine for describing the gap, fatal for the thesis test, which
+asks whether statistics available without labels pick good settings. Statistics that
+need labels answer the question by assumption.
+
+Everything in `unlabelled_stats.py` is computed from raw pixels: intensity quantiles,
+gradient magnitude, a granulometry curve from morphological openings at radii 1, 2, 3,
+4 and 6 as the unlabelled stand-in for body width, and three frame-to-frame motion
+statistics. Real and synthetic go through identical code; real frames are inverted
+first. Density is matched by construction rather than controlled for: labels sit in a
+disc covering a quarter of the frame, so the real full-frame worm count runs from
+about 5 to about 71, and synthetic clips are generated across that same ladder and
+pooled. Distance is the mean absolute z-score against the spread across the 178 real
+clips. The whole sweep takes under three minutes on the laptop CPU.
+
+| Config | Axis | Distance to real |
+|---|---|---|
+| R_120 | body radius | 0.540 |
+| R_160 | body radius | 0.566 |
+| L_20_30 | worm length | 0.751 |
+| L_25_35 | worm length | 0.758 |
+| alpha_wide | drag | 0.787 |
+| alpha_tight | drag | 0.799 |
+| defaults | none | 0.802 |
+| L_35_55 | worm length | 0.817 |
+| R_040, R_060 | body radius | 1.015 |
+| noise_000 | noise | 1.544 |
+| noise_005 | noise | 2.782 |
+| noise_010 | noise | 3.390 |
+
+Three results that need no training.
+
+The authors' noise setting sits at a minimum: 0.802 at std 0.01, against 1.544 with
+noise off and 3.390 at std 0.10. That number was not picked arbitrarily.
+
+The length axis agrees with the labelled measurement. Unlabelled statistics prefer
+shorter worms, 0.751 at a 25 px midpoint against 0.802 for the repo's 37.5 px, and the
+direct measurement puts real centrelines at a median of 29.5 px against 37.5 px
+simulated. Two independent routes, same direction.
+
+The third is a warning, not a finding, and it is the most useful thing here. The
+aggregate distance prefers much thicker worms, R=1.2 at 0.540 against R=0.8 at 0.802,
+which contradicts the labelled measurement that real bodies are 2.50 px wide against
+2.70 px simulated. Breaking the distance into its parts explains it. The granulometry
+statistics, the ones that actually measure body width, prefer the repo value and
+R=0.4, with z near 0.76 against 1.0 for R=1.2, agreeing with the labels. What drags
+R=1.2 to the top is the motion statistics: synthetic clips change too much between
+frames relative to their spatial contrast, `frame_diff_over_sd` 0.535 against 0.394
+real, and thickening the bodies raises spatial contrast, which buys down that error.
+A scalar distance over fourteen statistics lets one setting compensate for a mismatch
+on an axis it has nothing to do with. That hazard is visible before any model is
+trained, and it is a real caution for the thesis the project rests on.
+
+A fourth result is negative. Drag anisotropy spans only 0.787 to 0.802, against 0.54
+to 3.39 across the other axes, so these statistics cannot rank the motion axis even
+after three temporal statistics were added for exactly that purpose.
+
+Two cautions about the sweep's own shape. Four of the sixteen configs (`L_30_45`,
+`R_080`, `alpha_repo`, `noise_001`) hold the repo's own values on their axis, so they
+are the defaults under another name and all score exactly 0.802; they are kept as
+on-axis reference points and flagged `is_repo_default_on_its_axis`, but the sweep
+moves four axes across thirteen distinct settings, not sixteen. And adding the
+temporal statistics flipped the length axis: with spatial statistics alone, longer
+worms looked better; with motion included, shorter. The ranking depends on which
+statistics are chosen, which is itself worth reporting.
+
 ### The real-data score, validated against the published model
 
 `sweep/eval_real.py` scores a checkpoint on all 178 labelled clips with the paper's own

@@ -42,12 +42,12 @@ FLAGS = flags.FLAGS
 
 
 def real_pool():
-    frames = sorted((Path(FLAGS.data) / "frames").iterdir())
+    dirs = sorted((Path(FLAGS.data) / "frames").iterdir())
     stats = []
-    for d in frames:
-        img = imread(d / "05.png")
-        stats.append(us.frame_stats(us.prepare_real(img)))
-    return us.pool(stats), len(frames)
+    for d in dirs:
+        frames = np.stack([imread(d / f"{i:02d}.png") for i in range(FLAGS.nframes)])
+        stats.append(us.clip_stats(us.prepare_real_clip(frames)))
+    return us.pool(stats), len(dirs)
 
 
 def synthetic_pool(cfg, seed):
@@ -59,17 +59,19 @@ def synthetic_pool(cfg, seed):
             key, sk, vk = jr.split(key, 3)
             w = celegans.simulate(sk, nworms, FLAGS.clip_duration, FLAGS.nframes,
                                   FLAGS.size, FLAGS.kpoints)
-            clip = celegans.video_synthesis(vk, w, FLAGS.size)
-            mid = FLAGS.nframes // 2
-            stats.append(us.frame_stats(us.prepare_synthetic(clip[mid])))
+            clip = np.asarray(celegans.video_synthesis(vk, w, FLAGS.size))
+            stats.append(us.clip_stats(us.prepare_synthetic_clip(clip)))
     return us.pool(stats)
 
 
+# axis key, label, unit, the authors' own value on that axis.
+# Worm length is reported as the midpoint of the drawn range, so the repo's
+# uniform(30, 45) is 37.5 and not 30.
 AXES = {
-    "L": ("worm_length", "Worm length", "px", 30.0),
-    "R": ("body_radius", "Body radius", "px", 0.8),
-    "noise_std": ("sensor_noise", "Sensor noise", "std", 0.01),
-    "alpha_loc": ("drag_anisotropy", "Drag anisotropy", "ratio", 4.0),
+    "worm_length": ("Worm length", "px", 37.5),
+    "body_radius": ("Body radius", "px", 0.8),
+    "sensor_noise": ("Sensor noise", "std", 0.01),
+    "drag_anisotropy": ("Drag anisotropy", "ratio", 4.0),
 }
 
 

@@ -20,6 +20,16 @@
   // unreadable while an overflow probe still calls the page clean. Captions live in
   // HTML beside the chart and stay at body size at every width.
   function caption(id, text) { var e = $(id + '-cap'); if (e) e.textContent = text; }
+  // Cutting a chart label at a fixed character count leaves half-words on the page.
+  // Strings from the study output start lowercase, and they get injected after a full
+  // stop, so they need lifting rather than a sentence rewritten around each one.
+  function cap1(t) { t = String(t || ''); return t ? t.charAt(0).toUpperCase() + t.slice(1) : t; }
+  function shorten(t, n) {
+    t = String(t);
+    if (t.length <= n) return t;
+    var cut = t.slice(0, n), sp = cut.lastIndexOf(' ');
+    return (sp > n * 0.5 ? cut.slice(0, sp) : cut).replace(/[ ,_-]+$/, '') + '\u2026';
+  }
   // These charts are drawn in an 860-wide coordinate space and rendered into whatever
   // width the column has. On a phone that is about 350px, so every label inside the SVG
   // renders at 40 percent of its stated size and an 11px caption becomes 5px. Drawing a
@@ -337,6 +347,70 @@
     return { agreement: -raw, raw_distance_vs_score: raw, n: n };
   }
 
+  // Half of act three needs no training at all: the unlabelled statistics can be computed
+  // for every configuration and ranked. That half is a result on its own, and the most
+  // useful thing on this page is a hazard it exposes before any model exists.
+  function drawStatsOnly() {
+    var rows = (D.configs || []).filter(function (c) { return c.stat_distance_to_real != null; })
+      .slice().sort(function (a, b) { return a.stat_distance_to_real - b.stat_distance_to_real; });
+    var text = $('#statsonly'), host = $('#statrankviz'), v = $('#vstats');
+    if (!text) return;
+    if (rows.length < 3) {
+      text.textContent = 'The statistics have not been computed yet.';
+      if (v) v.innerHTML = '';
+      caption('#statrankviz', '');
+      return;
+    }
+    var f = D.statistics_only_finding || {};
+    var dups = (D.configs || []).filter(function (c) { return c.is_repo_default_on_its_axis; }).length;
+    text.innerHTML = 'Every configuration can be compared against the real footage without a model and ' +
+      'without a label, by measuring the same things in both: intensity, how sharp the edges are, a ' +
+      'size curve from morphological openings that stands in for body width, and how much a frame ' +
+      'changes from the one before. The distance below is the average of those, in standard deviations ' +
+      'of the spread across the ' + (D.real_data ? D.real_data.clips : '178') + ' real clips. Lower is ' +
+      'closer to real footage.' +
+      (dups ? ' ' + dups + ' of the ' + (D.configs || []).length + ' configurations hold the repository\'s ' +
+        'own value on their own axis, so they are the defaults under another name and score identically; ' +
+        'they are kept as reference points and marked.' : '');
+
+    var narrow = isNarrow();
+    var W = narrow ? 400 : 860, rowH = narrow ? 22 : 20;
+    var P = { l: narrow ? 118 : 150, r: narrow ? 46 : 60, t: 10, b: 18 };
+    var H = P.t + P.b + rows.length * rowH;
+    var maxD = rows[rows.length - 1].stat_distance_to_real;
+    var X = function (d) { return P.l + d / maxD * (W - P.l - P.r); };
+    var s2 = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Configurations ranked by how closely their synthetic frames match real footage' });
+    rows.forEach(function (r, i) {
+      var y = P.t + i * rowH + rowH / 2;
+      var isDef = r.is_repo_default_on_its_axis;
+      s2.appendChild(el('text', { x: P.l - 8, y: y + 4, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 9.5 : 10.5,
+        fill: isDef ? '#c8860d' : '#5b6470' }, shorten(r.name, narrow ? 15 : 22)));
+      s2.appendChild(el('line', { x1: P.l, y1: y, x2: X(r.stat_distance_to_real), y2: y,
+        stroke: isDef ? '#c8860d' : '#2c4a6b', 'stroke-width': 6, 'stroke-linecap': 'round' }));
+      s2.appendChild(el('text', { x: X(r.stat_distance_to_real) + 6, y: y + 4,
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': narrow ? 9 : 10, fill: '#8b95a1' },
+        num(r.stat_distance_to_real, 2)));
+    });
+    host.innerHTML = ''; host.appendChild(s2);
+    caption('#statrankviz', 'Distance from real footage, no labels and no training used. Lower is closer. ' +
+      'Amber rows hold the repository\'s own value on their axis.');
+
+    if (v) {
+      v.innerHTML = (f.radius_axis_warning
+        ? '<b>The thing worth taking from this act, and it is a warning rather than a result.</b> ' +
+          cap1(esc(f.radius_axis_warning)) + ' If a tuning loop is driven by a single distance over many ' +
+          'statistics, it can be talked into the wrong answer on one axis by an error on a different ' +
+          'one, and nothing in the number says it happened. That is visible here before any model has ' +
+          'been trained, which is the cheapest place to find it.'
+        : '') +
+        (f.noise_axis ? ' <br><br><b>Two things that do hold.</b> ' + cap1(esc(f.noise_axis)) : '') +
+        (f.length_axis ? ' And ' + esc(f.length_axis) : '') +
+        (f.motion_axis ? ' <br><br><b>And one axis these statistics cannot see.</b> ' + cap1(esc(f.motion_axis)) : '');
+    }
+  }
+
   function drawThesis() {
     var host = $('#thesisviz'); if (!host) return;
     var rows = (D.configs || []).filter(function (c) {
@@ -472,10 +546,11 @@
         ? '<strong>Changing one simulator setting at a time and retraining shows which of them the result ' +
           'actually depends on</strong>, scored against ' +
           (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') + '. '
-        : '<strong>The sweep that would show which of its settings the result depends on is built and has ' +
-          'not yet run</strong>, so what is here is what was measured first: the published model on ' +
-          (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') +
-          ', and two things about that labelled set which change what any score on it means. ') +
+        : '<strong>The training half of the sweep is built and waiting on a machine, and the half that ' +
+          'needs no training is done</strong>: every configuration is already ranked by how closely its ' +
+          'synthetic frames match ' +
+          (rd.clips != null ? rd.clips + ' clips of real footage' : 'real footage') + ', using no labels, ' +
+          'and that ranking has a warning in it worth more than the ranking. ') +
       'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all. ' +
       // The strongest fact against this page's own premise, computed, in the first screen.
       (function () {
@@ -1020,7 +1095,7 @@
         'study/build_page_data.py against the real sweep output.');
       return;
     }
-    redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
-    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
+    redrawOnWidthChange(drawDomain); redrawOnWidthChange(drawLabelCheck); redrawOnWidthChange(drawSweep); redrawOnWidthChange(drawStatsOnly); redrawOnWidthChange(drawThesis); redrawOnWidthChange(drawCurve);
+    drawDomain(); renderAxes(); drawSweep(); drawStatsOnly(); drawThesis(); fillProse(); drawFlip(); drawCurve(); modelCard(); selfCheck(); drawLabelCheck(); tour();
   });
 })();

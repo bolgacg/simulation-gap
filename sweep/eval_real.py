@@ -25,6 +25,7 @@ import numpy as np
 np.float = np.float64  # type: ignore[attr-defined]
 np.int = np.int_  # type: ignore[attr-defined]
 
+import jax
 import deeptangle as dt
 from deeptangle.metrics import asymmetric_dtw
 from skimage.exposure import equalize_adapthist
@@ -38,6 +39,7 @@ flags.DEFINE_float("score_threshold", 0.5, "Confidence threshold.")
 flags.DEFINE_float("overlap_threshold", 0.5, "Latent-space NMS threshold.")
 flags.DEFINE_float("dtw_cutoff", 3.0, "aDTW distance in px below which a label counts as found.")
 flags.DEFINE_integer("centroid_gate", 60, "Skip prediction/label pairs further apart than this, px.")
+flags.DEFINE_integer("cutoff", 48, "Physical cutoff in px for latent-space suppression, as in train.py.")
 flags.DEFINE_string("preprocess", "clahe", "clahe (as detect.py) or percentile (as training).")
 flags.DEFINE_integer("limit", 0, "Score only the first N sections. 0 means all of them.")
 flags.DEFINE_string("only_density", None, "Restrict to one video density, for example 13x or 1_5x.")
@@ -49,6 +51,18 @@ flags.DEFINE_string(
 )
 flags.DEFINE_float("region_radius", 0.0, "Override the region radius in px. 0 uses the file.")
 flags.DEFINE_string("region_centre", None, "Override the region centre as 'x,y'.")
+flags.DEFINE_integer(
+    "max_predictions",
+    0,
+    "Safety valve for undertrained checkpoints: keep at most this many candidates per "
+    "clip, highest confidence first, before non-maximum suppression. An early "
+    "checkpoint can push most of its 2048 candidates above the confidence threshold, "
+    "and suppression is an O(n^2) loop with array copies, so scoring one can take "
+    "longer than training it. Off by default because it is NOT free when it binds: on "
+    "the published weights a cap of 600 drops recall from 0.984 to 0.809 and 1200 to "
+    "0.977. Any run where it binds reports cap_bound_on_clips so the result is never "
+    "silently different from an uncapped one.",
+)
 FLAGS = flags.FLAGS
 
 
@@ -100,6 +114,33 @@ def score_section(preds_w, labels):
     return out
 
 
+def capped_detect(forward_fn, state, clip):
+    """
+    dt.detect, with an optional ceiling on how many candidates reach suppression.
+
+    With max_predictions at 0 this is exactly deeptangle's own detect(). The cap
+    exists only so an undertrained checkpoint can be scored at all; it discards real
+    detections whenever it binds, so the caller is told when it did.
+
+    Returns the surviving predictions and whether the cap bound on this clip.
+    """
+    preds = dt.predict(forward_fn, state, clip)
+    preds = jax.tree_util.tree_map(lambda x: np.asarray(x[0]), preds)
+
+    bound = False
+    if FLAGS.max_predictions > 0:
+        above = int((preds.s > FLAGS.score_threshold).sum())
+        if above > FLAGS.max_predictions:
+            bound = True
+            keep = np.sort(np.argsort(preds.s)[::-1][: FLAGS.max_predictions])
+            preds = jax.tree_util.tree_map(lambda x: x[keep], preds)
+
+    mask = dt.non_max_suppression(
+        preds, FLAGS.score_threshold, FLAGS.overlap_threshold, FLAGS.cutoff
+    )
+    return jax.tree_util.tree_map(lambda x: x[mask], preds), bound
+
+
 def load_region():
     """
     The disc the annotators actually worked in.
@@ -145,7 +186,7 @@ def main(argv):
     with dt.time_activity("Loading model"):
         forward_fn, state = dt.load_model(FLAGS.model)
 
-    n_lab = n_found = n_pred = n_claimed = 0
+    n_lab = n_found = n_pred = n_claimed = n_capped = 0
     r_lab = r_found = r_pred = r_claimed = 0
     per_section = {}
     dists = []
@@ -164,11 +205,8 @@ def main(argv):
             logging.warning("missing frames for %s, skipping", name)
             continue
         clip = preprocess(load_clip(section))
-        preds = dt.detect(
-            forward_fn, state, clip,
-            threshold=FLAGS.score_threshold,
-            overlap_threshold=FLAGS.overlap_threshold,
-        )
+        preds, cap_bound = capped_detect(forward_fn, state, clip)
+        n_capped += int(cap_bound)
         labels = [np.stack([s["x"], s["y"]], axis=-1) for s in entry["splines"]]
         scored = score_section(preds.w, labels)
 
@@ -217,6 +255,8 @@ def main(argv):
         "preprocess": FLAGS.preprocess,
         "dtw_cutoff": FLAGS.dtw_cutoff,
         "score_threshold": FLAGS.score_threshold,
+        "max_predictions": FLAGS.max_predictions,
+        "cap_bound_on_clips": n_capped,
         "overlap_threshold": FLAGS.overlap_threshold,
         "labels": n_lab,
         "found": n_found,

@@ -1,20 +1,24 @@
 measuring real clips, no labels used
-  178 real frames in 12 s
-I0914 23:34:03.119805 124370812436608 xla_bridge.py:836] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
-W0914 23:34:03.120157 124370812436608 xla_bridge.py:878] An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
-  defaults     axis=defaults        distance= 0.711  (57 s)
-  L_20_30      axis=worm_length     distance= 0.784  (9 s)
-  L_25_35      axis=worm_length     distance= 0.752  (6 s)
-  L_30_45      axis=defaults        distance= 0.711  (7 s)
-  L_35_55      axis=worm_length     distance= 0.679  (8 s)
-  R_040        axis=body_radius     distance= 0.838  (6 s)
-  R_060        axis=body_radius     distance= 0.838  (6 s)
-  R_080        axis=defaults        distance= 0.711  (6 s)
-  R_120        axis=body_radius     distance= 0.604  (7 s)
-  R_160        axis=body_radius     distance= 0.571  (10 s)
-  alpha_repo   axis=defaults        distance= 0.711  (6 s)
-  alpha_tight  axis=drag_anisotropy distance= 0.720  (7 s)
-  alpha_wide   axis=drag_anisotropy distance= 0.717  (6 s)
-  noise_000    axis=sensor_noise    distance= 1.525  (7 s)
-  noise_001    axis=defaults        distance= 0.711  (10 s)
-  noise_005    axis=sensor_noise    distance= 2.030  (7 s)
+  178 real frames in 17 s
+I0914 23:37:40.630053 134829388738688 xla_bridge.py:836] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+W0914 23:37:40.630347 134829388738688 xla_bridge.py:878] An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+  defaults     axis=defaults        distance= 0.802  (46 s)
+  L_20_30      axis=worm_length     distance= 0.751  (6 s)
+  L_25_35      axis=worm_length     distance= 0.758  (6 s)
+  L_30_45      axis=defaults        distance= 0.802  (6 s)
+  L_35_55      axis=worm_length     distance= 0.817  (6 s)
+  R_040        axis=body_radius     distance= 1.015  (9 s)
+  R_060        axis=body_radius     distance= 1.015  (6 s)
+  R_080        axis=defaults        distance= 0.802  (6 s)
+  R_120        axis=body_radius     distance= 0.540  (7 s)
+  R_160        axis=body_radius     distance= 0.566  (7 s)
+  alpha_repo   axis=defaults        distance= 0.802  (9 s)
+  alpha_tight  axis=drag_anisotropy distance= 0.799  (6 s)
+  alpha_wide   axis=drag_anisotropy distance= 0.787  (6 s)
+  noise_000    axis=sensor_noise    distance= 1.544  (6 s)
+  noise_001    axis=defaults        distance= 0.802  (6 s)
+  noise_005    axis=sensor_noise    distance= 2.782  (6 s)
+  noise_010    axis=sensor_noise    distance= 3.390  (8 s)
+
+wrote /home/bolgac/projects/simulation-gap/data/stats_sweep.json in 167.8 s
+closest to real first: R_120, R_160, L_20_30, L_25_35, alpha_wide, alpha_tight
