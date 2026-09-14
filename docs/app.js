@@ -303,7 +303,14 @@
       'The detector this page takes apart was trained entirely on simulated worms, by the group that wrote both. ' +
       '<strong>Changing one simulator setting at a time and retraining shows which of them the result actually depends on</strong>, ' +
       'scored against ' + (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') + '. ' +
-      'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all.';
+      'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all. ' +
+      // The strongest fact against this page's own premise, computed, in the first screen.
+      (function () {
+        var cov = (D.labelling_check || {}).simulator_length_coverage;
+        return cov ? 'One finding sits against all of it: only ' + cov.inside_range_pct +
+          ' percent of the real worms are even inside the length range the simulator can produce, ' +
+          'so there are worms here that no setting on this page can reach.' : '';
+      })();
     $('#baselinestat').innerHTML =
       '<div><div class="k">Published weights</div><div class="n">' + num(b.real_score) +
       '</div><div class="s">' + esc(b.what || 'the model released with the paper') + '</div></div>' +
