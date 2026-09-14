@@ -268,6 +268,65 @@
     }
   }
 
+  // Whether precision is a real false-alarm rate or an artefact of how much a human
+  // bothered to click. The dataset says nothing either way, so it is measured: if
+  // every worm in a crop is labelled, labels per crop must rise in proportion to the
+  // stated worm density, on a line through the origin.
+  function drawLabelCheck() {
+    var lc = D.labelling_check;
+    var text = $('#labelcheck');
+    if (!lc) {
+      text.textContent = 'Not checked. Until it is, an unmatched detection might be a false ' +
+        'positive or might be a real worm nobody clicked, so precision is not quoted anywhere above.';
+      return;
+    }
+    var by = lc.labels_per_clip_by_density || {};
+    // Keep the keys as written. They are strings like "1.0", so turning them into
+    // numbers and back loses the match and every lookup comes out undefined.
+    var keys = Object.keys(by).sort(function (a, b) { return Number(a) - Number(b); });
+    if (!keys.length) { text.textContent = 'Not checked.'; return; }
+    var first = keys[0], last = keys[keys.length - 1];
+    text.innerHTML = lc.verdict_exhaustive
+      ? 'Yes. The clips come from videos at stated worm densities from ' + Number(first) + ' to ' +
+        Number(last) + ' times. If a human labelled every worm in a crop, labels per crop have ' +
+        'to rise in proportion to that density on a line through the origin, because no worms means no ' +
+        'labels. A fixed quota per crop does not behave that way. Measured: ' +
+        by[first].mean_labels + ' labels a clip at the lowest density rising to ' +
+        by[last].mean_labels + ' at the highest, a fit of ' +
+        lc.slope_labels_per_unit_density + ' labels per unit density with an R squared of ' +
+        lc.r_squared_through_origin + ' through the origin. So an unmatched detection is a false ' +
+        'positive and precision means what it says.'
+      : 'No. Labels per clip do not track the stated worm density, so an unmatched detection may ' +
+        'well be a real worm nobody clicked. Precision is therefore not reported anywhere above, ' +
+        'and the page shows recall and distance only.';
+
+    var host = $('#labelcheckviz'); if (!host) return;
+    var W = 760, H = 210, P = { l: 52, r: 18, t: 16, b: 34 };
+    var maxX = Number(last);
+    var maxY = Math.max.apply(null, keys.map(function (k) { return by[k].mean_labels; }));
+    var sx = function (v) { return P.l + v / maxX * (W - P.l - P.r); };
+    var sy = function (v) { return H - P.b - v / maxY * (H - P.t - P.b); };
+    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Labels per clip against stated worm density, with the proportional fit' });
+    s.appendChild(el('line', { x1: P.l, y1: H - P.b, x2: W - P.r, y2: H - P.b, stroke: '#c9c5bd' }));
+    s.appendChild(el('line', { x1: P.l, y1: P.t, x2: P.l, y2: H - P.b, stroke: '#c9c5bd' }));
+    // the line the hypothesis predicts, drawn before the points it is tested against
+    s.appendChild(el('line', { x1: sx(0), y1: sy(0), x2: sx(maxX),
+      y2: sy(lc.slope_labels_per_unit_density * maxX), stroke: '#2c4a6b', 'stroke-width': 1.5,
+      'stroke-dasharray': '5 4' }));
+    keys.forEach(function (k) {
+      var row = by[k], x = Number(k);
+      s.appendChild(el('circle', { cx: sx(x), cy: sy(row.mean_labels), r: 4, fill: '#2c4a6b' }));
+      s.appendChild(el('text', { x: sx(x), y: H - P.b + 15, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, Number(k) + 'x'));
+    });
+    s.appendChild(el('text', { x: P.l, y: 11, 'font-family': "'IBM Plex Sans',sans-serif",
+      'font-size': 11, fill: '#5b6470' },
+      'Mean labels per clip against stated worm density. The dashed line is proportional, not fitted to an intercept.'));
+    host.innerHTML = '';
+    host.appendChild(s);
+  }
+
   function tour() {
     var root = $('#tour'), hl = $('.tour-hl', root), card = $('.tour-card', root), idx = 0;
     var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -339,6 +398,6 @@
         'Nothing here is measured. Run study/build_page_data.py against the real sweep output.');
       return;
     }
-    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); tour();
+    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); drawLabelCheck(); tour();
   });
 })();
