@@ -204,10 +204,19 @@
       '</div><div class="s">the answer</div></div>';
 
     if (t.spearman == null) {
+      // A partial sweep is a likely way for this to end, so say what is missing and
+      // what the finished part does show, rather than printing the word "nothing"
+      // twice and leaving a reader to work out whether that is a result.
+      var both = t.best_by_stats && t.best_by_real;
       $('#v3').innerHTML = '<b>Too few configurations to put a number on it.</b> ' +
-        (t.n_configs || rows.length) + ' points cannot support a rank correlation worth quoting, and the page will not quote one. ' +
-        'What can be said is whether the setting the statistics pick is the setting that wins: they chose ' +
-        esc(t.best_by_stats || 'nothing') + ', and the labels chose ' + esc(t.best_by_real || 'nothing') + '.';
+        (t.n_configs || rows.length) + ' finished ' +
+        ((t.n_configs || rows.length) === 1 ? 'configuration cannot' : 'configurations cannot') +
+        ' support a rank correlation worth quoting, so none is quoted. ' +
+        (both
+          ? 'Of what did finish, the statistics pick ' + esc(t.best_by_stats) + ' and the real scores pick ' +
+            esc(t.best_by_real) + ', which is ' + (t.best_by_stats === t.best_by_real ? 'agreement' : 'disagreement') +
+            ' on a sample far too small to lean on.'
+          : 'Until enough runs finish, this act reports nothing, which is the correct thing for it to report.');
     } else if (t.verdict_supports_thesis) {
       $('#v3').innerHTML = '<b>Unlabelled statistics do pick settings that work, on this system.</b> ' +
         'The two rankings agree to ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
