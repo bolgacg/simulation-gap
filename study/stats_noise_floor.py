@@ -23,8 +23,14 @@ the same side of the repository's value in every draw, the repository's position
 on the axis is the same every time, and at least one difference is more than
 three times the scatter of its own paired difference.
 
-Run: python3 study/stats_noise_floor.py
-Writes: data/stats_noise_floor.json
+Run: python3 study/stats_noise_floor.py            (the ten-clip pools)
+     python3 study/stats_noise_floor.py --pool 50  (the fifty-clip pools)
+Writes: data/stats_noise_floor.json, or data/stats_noise_floor_pool50.json
+
+Pool size matters and is carried in the output. A difference too small to resolve
+on ten clips per configuration is unresolved rather than absent, and the only way
+to tell those apart is to measure again on a bigger pool. Both files are kept so
+the page can say whether a conclusion survived five times the clips.
 """
 from __future__ import annotations
 
@@ -33,14 +39,21 @@ import statistics as st
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-RUNS = {
-    0: ROOT / "data" / "stats_sweep.json",
-    1: ROOT / "data" / "stats_sweep_seed1.json",
-    2: ROOT / "data" / "stats_sweep_seed2.json",
+POOLS = {
+    10: ({0: ROOT / "data" / "stats_sweep.json",
+          1: ROOT / "data" / "stats_sweep_seed1.json",
+          2: ROOT / "data" / "stats_sweep_seed2.json"},
+         ROOT / "data" / "stats_noise_floor.json"),
+    50: ({s: ROOT / "data" / f"stats_pool50_seed{s}.json" for s in (0, 1, 2)},
+         ROOT / "data" / "stats_noise_floor_pool50.json"),
 }
 
 
-def main() -> int:
+def main(pool: int = 10) -> int:
+    if pool not in POOLS:
+        print(f"no such pool size {pool}; known: {', '.join(str(k) for k in POOLS)}")
+        return 2
+    RUNS, OUT = POOLS[pool]
     have = {s: p for s, p in RUNS.items() if p.exists()}
     if len(have) < 2:
         print("need at least two seeds of the statistics sweep; found "
@@ -193,6 +206,7 @@ def main() -> int:
         })
 
     out = {
+        "clips_per_config": pool,
         "what": "the same sixteen configurations scored against the same real footage with the "
                 "synthetic clips redrawn from a different seed each time. Nothing about the "
                 "simulator settings changes between runs, only the draw.",
@@ -208,8 +222,9 @@ def main() -> int:
         "survives": [c["axis"] for c in claims if c["survives_reseeding"]],
         "does_not_survive": [c["axis"] for c in claims if not c["survives_reseeding"]],
     }
-    (ROOT / "data" / "stats_noise_floor.json").write_text(json.dumps(out, indent=1))
+    OUT.write_text(json.dumps(out, indent=1))
 
+    print(f"pool of {pool} clips per configuration, {len(seeds)} seeds -> {OUT.name}")
     print(f"noise floor, one configuration across {len(seeds)} seeds: sd {floor:.3f}")
     for c in claims:
         n = c["strongest_gap"]
@@ -225,4 +240,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    import sys
+    n = 10
+    if "--pool" in sys.argv:
+        n = int(sys.argv[sys.argv.index("--pool") + 1])
+    raise SystemExit(main(n))

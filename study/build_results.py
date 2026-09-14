@@ -341,7 +341,8 @@ def main():
             "ranking_by_stats_best_first": [c["name"] for c in ranked],
             "noise_floor_on_the_statistics": floor["noise_floor_median_spread"] if floor else None,
             "axes_that_clear_the_floor": ["sensor_noise", "body_radius"] if floor else None,
-            "axes_that_do_not": ["worm_length", "drag_anisotropy"] if floor else None,
+            "axes_that_do_not": ["drag_anisotropy"] if floor else None,
+            "axes_that_clear_only_on_the_larger_pool": ["worm_length"] if floor else None,
         },
         "statistics_noise_floor": floor,
         "statistics_only_finding": {
@@ -369,14 +370,23 @@ def main():
                 "spread of one configuration across draws and called it weak. That spread is "
                 "mostly the shift the draw applies to everything, so the comparison was the "
                 "wrong one and the finding is stronger than it said.",
-            "length_axis_DOES_NOT_clear_the_floor": "the repository's 37.5 px sits third "
-                "of four on the first draw and first of four on both later ones. Paired "
-                "differences against it run from -0.028 to +0.014, each with a scatter of "
-                "its own size, and no setting stays on one side. An earlier version of this file claimed the statistics "
-                "prefer shorter worms and therefore agree with the direct measurement that "
-                "real centrelines are 29.5 px against 37.5 px simulated. That claim does "
-                "not survive the repeats and has been withdrawn. The statistics say "
-                "nothing about worm length at this sample size.",
+            "length_axis_NEEDED_a_bigger_pool": "measured from fifty synthetic clips per "
+                "configuration rather than ten, the repository's 37.5 px sits third of four in "
+                "every draw. Paired against it, 25 px is closer to real by 0.056 with a scatter "
+                "of 0.006 across draws, 30 px by 0.032, and 45 px is further away by 0.030, so "
+                "the ordering runs with the setting: shorter is better, and better the shorter "
+                "it gets. At ten clips the same differences were 0.008 to 0.028 against scatters "
+                "of their own size and the axis read as flat, which is why an earlier version of "
+                "this file withdrew the claim that the statistics prefer shorter worms. That "
+                "withdrawal was right on the evidence it had, and the claim is restored on the "
+                "larger pool with its size stated: 0.056 is a fifth of what moving the body "
+                "radius does. The direct labelled measurement puts real centrelines at a median "
+                "of 29.5 px, which the two winning settings bracket. But the direction is a "
+                "weighting choice as much as a measurement: the six statistics that "
+                "describe what one frame looks like reverse it, and reverse it just as "
+                "consistently, preferring the longest setting tested in every draw at "
+                "both pool sizes. The combined distance agrees with the labels here. A "
+                "defensible subset of it does not.",
             "motion_axis_DOES_NOT_clear_the_floor": "drag anisotropy has no consistent "
                 "ordering. The wider setting is closer to real by 0.013 in every draw while "
                 "the tighter one changes side, and 0.013 is a twentieth of what moving the "
@@ -387,6 +397,35 @@ def main():
                 "changes the statistics by nothing measurable. A method that picks "
                 "simulator settings by matching unlabelled statistics would not find the "
                 "simulator's most clearly mis-set parameter.",
+            "what_the_distance_is_actually_chasing": "the two axes that produce an "
+                "ordering are both being used as levers on one temporal mismatch, and "
+                "neither ordering is a statement about the thing it appears to measure. "
+                "At the repository's settings the worst-matched statistic by a wide "
+                "margin is frame_diff_over_sd, how much the picture changes between "
+                "frames relative to its own spatial contrast: real footage sits at 0.394 "
+                "and the simulator at 0.535, a z of 1.60 where no other statistic exceeds "
+                "1.25. Thickening the bodies to R=1.2 moves it to 0.372, a z of 0.24, "
+                "because a thicker worm raises the spatial contrast in the denominator. "
+                "Shortening the worms moves it to 0.521 and improves the frame-to-frame "
+                "correlation as well. So 'thicker' and 'shorter' are both the distance "
+                "reaching for whatever will reduce one temporal error. The sting is what "
+                "cannot reach it: drag anisotropy is the parameter that actually governs "
+                "how a worm moves, and sweeping it across its whole range moves that "
+                "statistic from 0.537 to 0.533, which is nothing. A tuner matching these "
+                "statistics would thicken the worms, which direct measurement says is "
+                "already wrong by 0.2 px, leave the temporal mismatch untouched, and "
+                "report a much better score for having done so.",
+            "subset_disagreement_on_length_is_real_not_noise": "at fifty clips the "
+                "statistic groups disagree about worm length and each group is internally "
+                "consistent across all three draws, so this is a genuine disagreement "
+                "rather than sampling. Paired against the repository's 37.5 px, the "
+                "motion statistics alone prefer 25 px by 0.340 and the granulometry alone "
+                "by 0.031, while the spatial statistics alone prefer the longest setting "
+                "tested by 0.031. The combined answer follows the motion statistics "
+                "because their effect is six times the combined one. The combined answer "
+                "happens to agree with the labelled measurement, real centrelines at a "
+                "median of 29.5 px against 37.5 px simulated, but it agrees for a "
+                "temporal reason rather than because anything measured the worms' length.",
             "radius_axis_warning": "the unlabelled statistics want thicker worms than the "
                 "repo ships and every subset of them agrees, spatial only, granulometry "
                 "only and motion only. The direct labelled measurement says the opposite, "
@@ -404,11 +443,18 @@ def main():
                 "'this simulator cannot make images like these' into 'make the worms "
                 "thicker'. That is the failure mode the thesis has to survive, and it is "
                 "visible before a single model is trained.",
-            "ranking_depends_on_statistic_choice": "on the axes that do not clear the "
-                "floor the ordering also moves with the statistic set: spatial statistics "
-                "alone prefer the longest length tested while granulometry alone and "
-                "motion alone prefer the shortest. Equal weighting over fourteen "
-                "statistics is a choice nobody has justified.",
+            "ranking_depends_on_statistic_choice": "the fourteen statistics were split "
+                "into the three groups a laboratory might plausibly measure on its own, and "
+                "each group ranked the configurations by itself. On body radius and sensor "
+                "noise every group points the same way as the whole, so those answers do not "
+                "depend on the weighting. On worm length they disagree: the size curve and "
+                "the frame-to-frame measures prefer the shortest setting tested, the six that "
+                "describe a single frame prefer the longest, and each is consistent across "
+                "all three draws at fifty clips per configuration. The combined answer is "
+                "therefore decided by how many statistics sit in each group, and equal "
+                "weighting over fourteen is a choice nobody has justified. It is the failure "
+                "the body radius shows, appearing in a second place: one scalar, several "
+                "disagreeing sources of error, and nothing in the scalar that says so.",
         },
         "simulator_findings": {
             "what": "things about the authors' simulator that are visible from reading it "
@@ -513,10 +559,11 @@ def main():
             "error is common to every configuration and cancels in a comparison made inside "
             "a draw, the same way the draw's own shift does, but it means these distances are "
             "not confidence intervals on the real world.",
-            "Each configuration's statistics come from a pool of only ten synthetic clips, "
-            "which is what makes the noise floor as large as it is. Generating more clips "
-            "per configuration would shrink it and is the right fix; it was not done here "
-            "for time.",
+            "The floor depends on how many synthetic clips each configuration is measured "
+            "from. At ten clips it is 0.102; at fifty it is 0.037. Every axis conclusion here "
+            "was checked at both, and only worm length changes: flat at ten clips, ordered at "
+            "fifty. Read any axis this page calls flat as unresolved at the pool size used "
+            "rather than as shown absent.",
         ],
     }
 

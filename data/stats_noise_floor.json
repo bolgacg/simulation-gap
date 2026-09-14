@@ -1,4 +1,5 @@
 {
+ "clips_per_config": 10,
  "what": "the same sixteen configurations scored against the same real footage with the synthetic clips redrawn from a different seed each time. Nothing about the simulator settings changes between runs, only the draw.",
  "seeds": [
   0,

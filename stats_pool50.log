@@ -6,3 +6,68 @@ W0915 01:09:26.561747 125992116158592 xla_bridge.py:878] An NVIDIA GPU may be pr
   L_20_30      axis=worm_length     distance= 0.743  (35 s)
   L_25_35      axis=worm_length     distance= 0.767  (40 s)
   L_30_45      axis=defaults        distance= 0.792  (44 s)
+  L_35_55      axis=worm_length     distance= 0.828  (37 s)
+  R_040        axis=body_radius     distance= 0.994  (32 s)
+  R_060        axis=body_radius     distance= 0.994  (34 s)
+  R_080        axis=defaults        distance= 0.792  (34 s)
+  R_120        axis=body_radius     distance= 0.551  (36 s)
+  R_160        axis=body_radius     distance= 0.603  (37 s)
+  alpha_repo   axis=defaults        distance= 0.792  (35 s)
+  alpha_tight  axis=drag_anisotropy distance= 0.808  (35 s)
+  alpha_wide   axis=drag_anisotropy distance= 0.789  (36 s)
+  noise_000    axis=sensor_noise    distance= 1.491  (35 s)
+  noise_001    axis=defaults        distance= 0.792  (35 s)
+  noise_005    axis=sensor_noise    distance= 2.746  (36 s)
+  noise_010    axis=sensor_noise    distance= 3.391  (38 s)
+
+wrote /home/bolgac/projects/simulation-gap/data/stats_pool50_seed0.json in 679.7 s
+closest to real first: R_120, R_160, L_20_30, L_25_35, alpha_wide, defaults
+measuring real clips, no labels used
+  178 real frames in 19 s
+I0915 01:20:48.808386 131599913885824 xla_bridge.py:836] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+W0915 01:20:48.808716 131599913885824 xla_bridge.py:878] An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+  defaults     axis=defaults        distance= 0.714  (74 s)
+  L_20_30      axis=worm_length     distance= 0.650  (36 s)
+  L_25_35      axis=worm_length     distance= 0.677  (33 s)
+  L_30_45      axis=defaults        distance= 0.714  (34 s)
+  L_35_55      axis=worm_length     distance= 0.731  (34 s)
+  R_040        axis=body_radius     distance= 0.907  (34 s)
+  R_060        axis=body_radius     distance= 0.907  (34 s)
+  R_080        axis=defaults        distance= 0.714  (35 s)
+  R_120        axis=body_radius     distance= 0.392  (37 s)
+  R_160        axis=body_radius     distance= 0.478  (38 s)
+  alpha_repo   axis=defaults        distance= 0.714  (35 s)
+  alpha_tight  axis=drag_anisotropy distance= 0.718  (35 s)
+  alpha_wide   axis=drag_anisotropy distance= 0.704  (36 s)
+  noise_000    axis=sensor_noise    distance= 1.620  (34 s)
+  noise_001    axis=defaults        distance= 0.714  (35 s)
+  noise_005    axis=sensor_noise    distance= 2.782  (36 s)
+  noise_010    axis=sensor_noise    distance= 3.390  (36 s)
+
+wrote /home/bolgac/projects/simulation-gap/data/stats_pool50_seed1.json in 656.9 s
+closest to real first: R_120, R_160, L_20_30, L_25_35, alpha_wide, defaults
+measuring real clips, no labels used
+  178 real frames in 20 s
+I0915 01:31:52.363517 136391489589376 xla_bridge.py:836] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+W0915 01:31:52.363863 136391489589376 xla_bridge.py:878] An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+  defaults     axis=defaults        distance= 0.745  (76 s)
+  L_20_30      axis=worm_length     distance= 0.689  (35 s)
+  L_25_35      axis=worm_length     distance= 0.711  (35 s)
+  L_30_45      axis=defaults        distance= 0.745  (34 s)
+  L_35_55      axis=worm_length     distance= 0.783  (38 s)
+  R_040        axis=body_radius     distance= 0.922  (39 s)
+  R_060        axis=body_radius     distance= 0.922  (38 s)
+  R_080        axis=defaults        distance= 0.745  (35 s)
+  R_120        axis=body_radius     distance= 0.414  (37 s)
+  R_160        axis=body_radius     distance= 0.502  (38 s)
+  alpha_repo   axis=defaults        distance= 0.745  (37 s)
+  alpha_tight  axis=drag_anisotropy distance= 0.748  (34 s)
+  alpha_wide   axis=drag_anisotropy distance= 0.740  (35 s)
+  noise_000    axis=sensor_noise    distance= 1.650  (37 s)
+  noise_001    axis=defaults        distance= 0.745  (36 s)
+  noise_005    axis=sensor_noise    distance= 2.795  (37 s)
+  noise_010    axis=sensor_noise    distance= 3.410  (37 s)
+
+wrote /home/bolgac/projects/simulation-gap/data/stats_pool50_seed2.json in 678.2 s
+closest to real first: R_120, R_160, L_20_30, L_25_35, alpha_wide, defaults
+POOL50DONE

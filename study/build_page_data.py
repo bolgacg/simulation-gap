@@ -87,6 +87,50 @@ def main(allow_fixture: bool = False) -> int:
     if nf.exists():
         d["stats_noise_floor"] = json.loads(nf.read_text())
 
+    # The same test run again on five times the clips per configuration. A difference
+    # too small to resolve on a small pool is unresolved rather than absent, and only a
+    # bigger pool can tell those apart. This travels as a replication rather than as a
+    # replacement, because a conclusion that survives a five-fold change in pool size is
+    # worth more than the same conclusion measured once on the larger pool.
+    nf50 = ROOT / "data" / "stats_noise_floor_pool50.json"
+    if nf50.exists() and "stats_noise_floor" in d:
+        big = json.loads(nf50.read_text())
+        small = d["stats_noise_floor"]
+        by_axis = {c["axis"]: c for c in big.get("axis_claims") or []}
+        rows = []
+        for c in small.get("axis_claims") or []:
+            b = by_axis.get(c["axis"])
+            if not b:
+                continue
+            sg, bg = c.get("strongest_gap"), b.get("strongest_gap")
+            rows.append({
+                "axis": c["axis"],
+                "small": {"holds": c["survives_reseeding"],
+                          "gap": sg and sg["mean_gap_to_repo"],
+                          "scatter": sg and sg["sd_of_paired_difference"],
+                          "position": list(c["repo_position_on_axis_by_seed"].values())},
+                "big": {"holds": b["survives_reseeding"],
+                        "gap": bg and bg["mean_gap_to_repo"],
+                        "scatter": bg and bg["sd_of_paired_difference"],
+                        "position": list(b["repo_position_on_axis_by_seed"].values())},
+                "agrees": c["survives_reseeding"] == b["survives_reseeding"],
+            })
+        d["stats_pool_check"] = {
+            "small_clips": small.get("clips_per_config"),
+            "big_clips": big.get("clips_per_config"),
+            "small_seeds": len(small.get("seeds") or []),
+            "big_seeds": len(big.get("seeds") or []),
+            "axes": rows,
+            "all_agree": all(r["agrees"] for r in rows) if rows else None,
+        }
+
+    # Whether the answer depends on which statistics are in the distance. This is the
+    # same failure the granulometry curves show, measured a second way, so it travels
+    # with the numbers rather than as a sentence asserting it.
+    sr = ROOT / "data" / "subset_rankings.json"
+    if sr.exists():
+        d["subset_rankings"] = json.loads(sr.read_text())
+
     # The granulometry curves behind act three's warning. They travel because the warning
     # rests on the SHAPE of the curve rather than on any single number, and a shape stated
     # as eleven numbers inside a sentence is a shape nobody reads. The page draws it.

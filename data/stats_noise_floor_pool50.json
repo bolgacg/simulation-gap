@@ -1,0 +1,780 @@
+{
+ "clips_per_config": 50,
+ "what": "the same sixteen configurations scored against the same real footage with the synthetic clips redrawn from a different seed each time. Nothing about the simulator settings changes between runs, only the draw.",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "noise_floor_sd": 0.03707147669160361,
+ "how_to_read_the_floor": "the typical standard deviation of one configuration's distance across the seeds. A gap between two settings smaller than this is the draw talking.",
+ "common_shift_between_draws": {
+  "mean_distance_by_seed": {
+   "0": 1.0977668884149892,
+   "1": 1.0308783112524513,
+   "2": 1.0594334049871523
+  },
+  "range": 0.06688857716253782,
+  "per_config_sd": 0.03798689365109779,
+  "per_config_sd_after_removing_the_shift": 0.020177311342297853,
+  "common_random_numbers": "the pairing is the simulator's own design rather than a choice made here. synthetic_pool builds one key from the seed and the replacement sampler splits it in the same fixed order whatever the configuration holds, so a configuration changes the bounds of a draw and never the draw itself. The same variate becomes worm i under every configuration, in the same place and moving the same way, differing only in the length or thickness or drag it is drawn with. Anyone rebuilding this has to hold the seed fixed across configurations: vary it per configuration and the pairing is gone and the effect disappears into the draw.",
+  "what_it_shows": "the draw moves every configuration together. The spread of a single configuration across draws is therefore mostly a shift shared by all of them, and differencing two configurations inside one draw removes it. The same seed generates both pools, so the comparison is paired."
+ },
+ "identical_configurations": {
+  "configs": [
+   "L_30_45",
+   "R_080",
+   "alpha_repo",
+   "noise_001"
+  ],
+  "spread_within_a_seed": 0.0,
+  "what_it_shows": "these configurations hold the repository's own value on their own axis, so they are the same simulator under different names. Within one seed they agree to the digit, which is why the spread across seeds can be read as the draw and nothing else."
+ },
+ "per_config": {
+  "R_120": {
+   "axis": "body_radius",
+   "axis_value": 1.2,
+   "by_seed": {
+    "0": 0.5509289287172192,
+    "1": 0.3923581995225019,
+    "2": 0.4140273018877103
+   },
+   "mean": 0.45243814337581045,
+   "sd": 0.07020310343189519,
+   "min": 0.3923581995225019,
+   "max": 0.5509289287172192,
+   "rank_by_seed": {
+    "0": 1,
+    "1": 1,
+    "2": 1
+   },
+   "rank_range": [
+    1,
+    1
+   ]
+  },
+  "R_160": {
+   "axis": "body_radius",
+   "axis_value": 1.6,
+   "by_seed": {
+    "0": 0.602624615688903,
+    "1": 0.4776886736657346,
+    "2": 0.5020418315202491
+   },
+   "mean": 0.5274517069582956,
+   "sd": 0.054077066794448736,
+   "min": 0.4776886736657346,
+   "max": 0.602624615688903,
+   "rank_by_seed": {
+    "0": 2,
+    "1": 2,
+    "2": 2
+   },
+   "rank_range": [
+    2,
+    2
+   ]
+  },
+  "L_20_30": {
+   "axis": "worm_length",
+   "axis_value": 25.0,
+   "by_seed": {
+    "0": 0.7431592585768312,
+    "1": 0.650056609067435,
+    "2": 0.689363852327049
+   },
+   "mean": 0.6941932399904384,
+   "sd": 0.038162093542500525,
+   "min": 0.650056609067435,
+   "max": 0.7431592585768312,
+   "rank_by_seed": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   },
+   "rank_range": [
+    3,
+    3
+   ]
+  },
+  "L_25_35": {
+   "axis": "worm_length",
+   "axis_value": 30.0,
+   "by_seed": {
+    "0": 0.766647136555738,
+    "1": 0.6766075878153407,
+    "2": 0.7114300843428156
+   },
+   "mean": 0.7182282695712982,
+   "sd": 0.03707147669160361,
+   "min": 0.6766075878153407,
+   "max": 0.766647136555738,
+   "rank_by_seed": {
+    "0": 4,
+    "1": 4,
+    "2": 4
+   },
+   "rank_range": [
+    4,
+    4
+   ]
+  },
+  "alpha_wide": {
+   "axis": "drag_anisotropy",
+   "axis_value": 8.0,
+   "by_seed": {
+    "0": 0.7885071380796954,
+    "1": 0.7041139534902674,
+    "2": 0.739502511733758
+   },
+   "mean": 0.7440412011012403,
+   "sd": 0.03460252569940707,
+   "min": 0.7041139534902674,
+   "max": 0.7885071380796954,
+   "rank_by_seed": {
+    "0": 5,
+    "1": 5,
+    "2": 5
+   },
+   "rank_range": [
+    5,
+    5
+   ]
+  },
+  "defaults": {
+   "axis": "defaults",
+   "axis_value": null,
+   "by_seed": {
+    "0": 0.7915197882795634,
+    "1": 0.7137533334477252,
+    "2": 0.7449647000769882
+   },
+   "mean": 0.7500792739347589,
+   "sd": 0.03195334644538322,
+   "min": 0.7137533334477252,
+   "max": 0.7915197882795634,
+   "rank_by_seed": {
+    "0": 6,
+    "1": 6,
+    "2": 6
+   },
+   "rank_range": [
+    6,
+    6
+   ]
+  },
+  "L_30_45": {
+   "axis": "worm_length",
+   "axis_value": 37.5,
+   "by_seed": {
+    "0": 0.7915197882795634,
+    "1": 0.7137533334477252,
+    "2": 0.7449647000769882
+   },
+   "mean": 0.7500792739347589,
+   "sd": 0.03195334644538322,
+   "min": 0.7137533334477252,
+   "max": 0.7915197882795634,
+   "rank_by_seed": {
+    "0": 7,
+    "1": 7,
+    "2": 7
+   },
+   "rank_range": [
+    7,
+    7
+   ]
+  },
+  "R_080": {
+   "axis": "body_radius",
+   "axis_value": 0.8,
+   "by_seed": {
+    "0": 0.7915197882795634,
+    "1": 0.7137533334477252,
+    "2": 0.7449647000769882
+   },
+   "mean": 0.7500792739347589,
+   "sd": 0.03195334644538322,
+   "min": 0.7137533334477252,
+   "max": 0.7915197882795634,
+   "rank_by_seed": {
+    "0": 8,
+    "1": 8,
+    "2": 8
+   },
+   "rank_range": [
+    8,
+    8
+   ]
+  },
+  "alpha_repo": {
+   "axis": "drag_anisotropy",
+   "axis_value": 4.0,
+   "by_seed": {
+    "0": 0.7915197882795634,
+    "1": 0.7137533334477252,
+    "2": 0.7449647000769882
+   },
+   "mean": 0.7500792739347589,
+   "sd": 0.03195334644538322,
+   "min": 0.7137533334477252,
+   "max": 0.7915197882795634,
+   "rank_by_seed": {
+    "0": 9,
+    "1": 9,
+    "2": 9
+   },
+   "rank_range": [
+    9,
+    9
+   ]
+  },
+  "noise_001": {
+   "axis": "sensor_noise",
+   "axis_value": 0.01,
+   "by_seed": {
+    "0": 0.7915197882795634,
+    "1": 0.7137533334477252,
+    "2": 0.7449647000769882
+   },
+   "mean": 0.7500792739347589,
+   "sd": 0.03195334644538322,
+   "min": 0.7137533334477252,
+   "max": 0.7915197882795634,
+   "rank_by_seed": {
+    "0": 10,
+    "1": 10,
+    "2": 10
+   },
+   "rank_range": [
+    10,
+    10
+   ]
+  },
+  "alpha_tight": {
+   "axis": "drag_anisotropy",
+   "axis_value": 1.5,
+   "by_seed": {
+    "0": 0.8081327016608733,
+    "1": 0.7175489891386931,
+    "2": 0.7484530860405956
+   },
+   "mean": 0.7580449256133873,
+   "sd": 0.03759747139873348,
+   "min": 0.7175489891386931,
+   "max": 0.8081327016608733,
+   "rank_by_seed": {
+    "0": 11,
+    "1": 11,
+    "2": 11
+   },
+   "rank_range": [
+    11,
+    11
+   ]
+  },
+  "L_35_55": {
+   "axis": "worm_length",
+   "axis_value": 45.0,
+   "by_seed": {
+    "0": 0.8281079154798064,
+    "1": 0.7307337802800297,
+    "2": 0.7828609641341374
+   },
+   "mean": 0.7805675532979912,
+   "sd": 0.0397858882136503,
+   "min": 0.7307337802800297,
+   "max": 0.8281079154798064,
+   "rank_by_seed": {
+    "0": 12,
+    "1": 12,
+    "2": 12
+   },
+   "rank_range": [
+    12,
+    12
+   ]
+  },
+  "R_040": {
+   "axis": "body_radius",
+   "axis_value": 0.4,
+   "by_seed": {
+    "0": 0.9940988634803739,
+    "1": 0.9073074373042573,
+    "2": 0.9217583593009672
+   },
+   "mean": 0.9410548866951994,
+   "sd": 0.03796888982248793,
+   "min": 0.9073074373042573,
+   "max": 0.9940988634803739,
+   "rank_by_seed": {
+    "0": 13,
+    "1": 14,
+    "2": 13
+   },
+   "rank_range": [
+    13,
+    14
+   ]
+  },
+  "R_060": {
+   "axis": "body_radius",
+   "axis_value": 0.6,
+   "by_seed": {
+    "0": 0.9940989050686877,
+    "1": 0.9073074366610897,
+    "2": 0.9217583913954075
+   },
+   "mean": 0.9410549110417283,
+   "sd": 0.03796890394285306,
+   "min": 0.9073074366610897,
+   "max": 0.9940989050686877,
+   "rank_by_seed": {
+    "0": 14,
+    "1": 13,
+    "2": 14
+   },
+   "rank_range": [
+    13,
+    14
+   ]
+  },
+  "noise_000": {
+   "axis": "sensor_noise",
+   "axis_value": 0.0,
+   "by_seed": {
+    "0": 1.4910249847708417,
+    "1": 1.6201189157132736,
+    "2": 1.6501830966923665
+   },
+   "mean": 1.5871089990588272,
+   "sd": 0.06904137453129719,
+   "min": 1.4910249847708417,
+   "max": 1.6501830966923665,
+   "rank_by_seed": {
+    "0": 15,
+    "1": 15,
+    "2": 15
+   },
+   "rank_range": [
+    15,
+    15
+   ]
+  },
+  "noise_005": {
+   "axis": "sensor_noise",
+   "axis_value": 0.05,
+   "by_seed": {
+    "0": 2.746187686064399,
+    "1": 2.78223598761486,
+    "2": 2.794585117941975
+   },
+   "mean": 2.7743362638737445,
+   "sd": 0.02053260950253861,
+   "min": 2.746187686064399,
+   "max": 2.794585117941975,
+   "rank_by_seed": {
+    "0": 16,
+    "1": 16,
+    "2": 16
+   },
+   "rank_range": [
+    16,
+    16
+   ]
+  },
+  "noise_010": {
+   "axis": "sensor_noise",
+   "axis_value": 0.1,
+   "by_seed": {
+    "0": 3.3909200275136304,
+    "1": 3.3900870537795633,
+    "2": 3.4095797870796183
+   },
+   "mean": 3.396862289457604,
+   "sd": 0.00899905627033063,
+   "min": 3.3900870537795633,
+   "max": 3.4095797870796183,
+   "rank_by_seed": {
+    "0": 17,
+    "1": 17,
+    "2": 17
+   },
+   "rank_range": [
+    17,
+    17
+   ]
+  }
+ },
+ "axis_claims": [
+  {
+   "axis": "body_radius",
+   "repo_config": "R_080",
+   "repo_value": 0.8,
+   "settings_tested_on_axis": 5,
+   "repo_position_on_axis_by_seed": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   },
+   "repo_position_is_stable": true,
+   "beats_repo_in_every_seed": [
+    {
+     "config": "R_120",
+     "value": 1.2,
+     "difference_from_repo_by_seed": {
+      "0": 0.24059085956234416,
+      "1": 0.3213951339252233,
+      "2": 0.3309373981892779
+     },
+     "mean_gap_to_repo": 0.2976411305589485,
+     "sd_of_paired_difference": 0.04052829272998272,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 7.34403327921964,
+     "gap_over_unpaired_floor": 8.028844737829443,
+     "rank_by_seed": {
+      "0": 1,
+      "1": 1,
+      "2": 1
+     }
+    },
+    {
+     "config": "R_160",
+     "value": 1.6,
+     "difference_from_repo_by_seed": {
+      "0": 0.18889517259066035,
+      "1": 0.2360646597819906,
+      "2": 0.24292286855673917
+     },
+     "mean_gap_to_repo": 0.22262756697646338,
+     "sd_of_paired_difference": 0.024016169277510043,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 9.26990330572591,
+     "gap_over_unpaired_floor": 6.005360100124815,
+     "rank_by_seed": {
+      "0": 2,
+      "1": 2,
+      "2": 2
+     }
+    }
+   ],
+   "loses_to_repo_in_every_seed": [
+    {
+     "config": "R_040",
+     "value": 0.4,
+     "difference_from_repo_by_seed": {
+      "0": -0.20257907520081053,
+      "1": -0.19355410385653216,
+      "2": -0.17679365922397894
+     },
+     "mean_gap_to_repo": -0.19097561276044053,
+     "sd_of_paired_difference": 0.010683581843933188,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 17.875616581613826,
+     "gap_over_unpaired_floor": -5.151551268085713,
+     "rank_by_seed": {
+      "0": 13,
+      "1": 14,
+      "2": 13
+     }
+    },
+    {
+     "config": "R_060",
+     "value": 0.6,
+     "difference_from_repo_by_seed": {
+      "0": -0.20257911678912432,
+      "1": -0.19355410321336453,
+      "2": -0.17679369131841927
+     },
+     "mean_gap_to_repo": -0.19097563710696938,
+     "sd_of_paired_difference": 0.010683582647304938,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 17.875617516296867,
+     "gap_over_unpaired_floor": -5.151551924831304,
+     "rank_by_seed": {
+      "0": 14,
+      "1": 13,
+      "2": 14
+     }
+    }
+   ],
+   "changes_side_between_seeds": [],
+   "every_setting_keeps_its_side": true,
+   "strongest_gap": {
+    "config": "R_120",
+    "value": 1.2,
+    "difference_from_repo_by_seed": {
+     "0": 0.24059085956234416,
+     "1": 0.3213951339252233,
+     "2": 0.3309373981892779
+    },
+    "mean_gap_to_repo": 0.2976411305589485,
+    "sd_of_paired_difference": 0.04052829272998272,
+    "same_sign_in_every_draw": true,
+    "gap_over_its_own_scatter": 7.34403327921964,
+    "gap_over_unpaired_floor": 8.028844737829443,
+    "rank_by_seed": {
+     "0": 1,
+     "1": 1,
+     "2": 1
+    }
+   },
+   "survives_reseeding": true
+  },
+  {
+   "axis": "drag_anisotropy",
+   "repo_config": "alpha_repo",
+   "repo_value": 4.0,
+   "settings_tested_on_axis": 3,
+   "repo_position_on_axis_by_seed": {
+    "0": 2,
+    "1": 2,
+    "2": 2
+   },
+   "repo_position_is_stable": true,
+   "beats_repo_in_every_seed": [
+    {
+     "config": "alpha_wide",
+     "value": 8.0,
+     "difference_from_repo_by_seed": {
+      "0": 0.003012650199867961,
+      "1": 0.009639379957457783,
+      "2": 0.005462188343230201
+     },
+     "mean_gap_to_repo": 0.006038072833518648,
+     "sd_of_paired_difference": 0.002735826386992628,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 2.2070380131672147,
+     "gap_over_unpaired_floor": 0.16287651241274195,
+     "rank_by_seed": {
+      "0": 5,
+      "1": 5,
+      "2": 5
+     }
+    }
+   ],
+   "loses_to_repo_in_every_seed": [
+    {
+     "config": "alpha_tight",
+     "value": 1.5,
+     "difference_from_repo_by_seed": {
+      "0": -0.01661291338130988,
+      "1": -0.0037956556909679584,
+      "2": -0.0034883859636073433
+     },
+     "mean_gap_to_repo": -0.007965651678628394,
+     "sd_of_paired_difference": 0.006115824004843746,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 1.3024658120180665,
+     "gap_over_unpaired_floor": -0.2148727914157396,
+     "rank_by_seed": {
+      "0": 11,
+      "1": 11,
+      "2": 11
+     }
+    }
+   ],
+   "changes_side_between_seeds": [],
+   "every_setting_keeps_its_side": true,
+   "strongest_gap": {
+    "config": "alpha_wide",
+    "value": 8.0,
+    "difference_from_repo_by_seed": {
+     "0": 0.003012650199867961,
+     "1": 0.009639379957457783,
+     "2": 0.005462188343230201
+    },
+    "mean_gap_to_repo": 0.006038072833518648,
+    "sd_of_paired_difference": 0.002735826386992628,
+    "same_sign_in_every_draw": true,
+    "gap_over_its_own_scatter": 2.2070380131672147,
+    "gap_over_unpaired_floor": 0.16287651241274195,
+    "rank_by_seed": {
+     "0": 5,
+     "1": 5,
+     "2": 5
+    }
+   },
+   "survives_reseeding": false
+  },
+  {
+   "axis": "sensor_noise",
+   "repo_config": "noise_001",
+   "repo_value": 0.01,
+   "settings_tested_on_axis": 4,
+   "repo_position_on_axis_by_seed": {
+    "0": 1,
+    "1": 1,
+    "2": 1
+   },
+   "repo_position_is_stable": true,
+   "beats_repo_in_every_seed": [],
+   "loses_to_repo_in_every_seed": [
+    {
+     "config": "noise_000",
+     "value": 0.0,
+     "difference_from_repo_by_seed": {
+      "0": -0.6995051964912783,
+      "1": -0.9063655822655484,
+      "2": -0.9052183966153783
+     },
+     "mean_gap_to_repo": -0.8370297251240684,
+     "sd_of_paired_difference": 0.09724565454038656,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 8.6073740680767,
+     "gap_over_unpaired_floor": -22.57880720768938,
+     "rank_by_seed": {
+      "0": 15,
+      "1": 15,
+      "2": 15
+     }
+    },
+    {
+     "config": "noise_005",
+     "value": 0.05,
+     "difference_from_repo_by_seed": {
+      "0": -1.9546678977848355,
+      "1": -2.068482654167135,
+      "2": -2.0496204178649866
+     },
+     "mean_gap_to_repo": -2.0242569899389857,
+     "sd_of_paired_difference": 0.0498058048806136,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 40.64299321718033,
+     "gap_over_unpaired_floor": -54.60416391768563,
+     "rank_by_seed": {
+      "0": 16,
+      "1": 16,
+      "2": 16
+     }
+    },
+    {
+     "config": "noise_010",
+     "value": 0.1,
+     "difference_from_repo_by_seed": {
+      "0": -2.599400239234067,
+      "1": -2.6763337203318383,
+      "2": -2.66461508700263
+     },
+     "mean_gap_to_repo": -2.646783015522845,
+     "sd_of_paired_difference": 0.03384451908754112,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 78.20418451438957,
+     "gap_over_unpaired_floor": -71.39675167356687,
+     "rank_by_seed": {
+      "0": 17,
+      "1": 17,
+      "2": 17
+     }
+    }
+   ],
+   "changes_side_between_seeds": [],
+   "every_setting_keeps_its_side": true,
+   "strongest_gap": null,
+   "survives_reseeding": true
+  },
+  {
+   "axis": "worm_length",
+   "repo_config": "L_30_45",
+   "repo_value": 37.5,
+   "settings_tested_on_axis": 4,
+   "repo_position_on_axis_by_seed": {
+    "0": 3,
+    "1": 3,
+    "2": 3
+   },
+   "repo_position_is_stable": true,
+   "beats_repo_in_every_seed": [
+    {
+     "config": "L_20_30",
+     "value": 25.0,
+     "difference_from_repo_by_seed": {
+      "0": 0.04836052970273219,
+      "1": 0.06369672438029017,
+      "2": 0.05560084774993923
+     },
+     "mean_gap_to_repo": 0.05588603394432053,
+     "sd_of_paired_difference": 0.006264221961323353,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 8.921464515365654,
+     "gap_over_unpaired_floor": 1.5075211168207463,
+     "rank_by_seed": {
+      "0": 3,
+      "1": 3,
+      "2": 3
+     }
+    },
+    {
+     "config": "L_25_35",
+     "value": 30.0,
+     "difference_from_repo_by_seed": {
+      "0": 0.024872651723825356,
+      "1": 0.037145745632384486,
+      "2": 0.0335346157341726
+     },
+     "mean_gap_to_repo": 0.03185100436346081,
+     "sd_of_paired_difference": 0.005149959155680772,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 6.1847100919872116,
+     "gap_over_unpaired_floor": 0.8591781932084408,
+     "rank_by_seed": {
+      "0": 4,
+      "1": 4,
+      "2": 4
+     }
+    }
+   ],
+   "loses_to_repo_in_every_seed": [
+    {
+     "config": "L_35_55",
+     "value": 45.0,
+     "difference_from_repo_by_seed": {
+      "0": -0.03658812720024307,
+      "1": -0.016980446832304485,
+      "2": -0.03789626405714919
+     },
+     "mean_gap_to_repo": -0.030488279363232246,
+     "sd_of_paired_difference": 0.00956639814739737,
+     "same_sign_in_every_draw": true,
+     "gap_over_its_own_scatter": 3.187017610335074,
+     "gap_over_unpaired_floor": -0.8224187996842758,
+     "rank_by_seed": {
+      "0": 12,
+      "1": 12,
+      "2": 12
+     }
+    }
+   ],
+   "changes_side_between_seeds": [],
+   "every_setting_keeps_its_side": true,
+   "strongest_gap": {
+    "config": "L_20_30",
+    "value": 25.0,
+    "difference_from_repo_by_seed": {
+     "0": 0.04836052970273219,
+     "1": 0.06369672438029017,
+     "2": 0.05560084774993923
+    },
+    "mean_gap_to_repo": 0.05588603394432053,
+    "sd_of_paired_difference": 0.006264221961323353,
+    "same_sign_in_every_draw": true,
+    "gap_over_its_own_scatter": 8.921464515365654,
+    "gap_over_unpaired_floor": 1.5075211168207463,
+    "rank_by_seed": {
+     "0": 3,
+     "1": 3,
+     "2": 3
+    }
+   },
+   "survives_reseeding": true
+  }
+ ],
+ "survives": [
+  "body_radius",
+  "sensor_noise",
+  "worm_length"
+ ],
+ "does_not_survive": [
+  "drag_anisotropy"
+ ]
+}

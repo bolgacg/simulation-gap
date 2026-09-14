@@ -359,6 +359,7 @@
       text.textContent = 'The statistics have not been computed yet.';
       if (v) v.innerHTML = '';
       var v0 = $('#vstats2'); if (v0) v0.innerHTML = '';
+      var p0 = $('#poolcheck'); if (p0) p0.innerHTML = '';
       caption('#statrankviz', '');
       drawGranulometry();
       return;
@@ -444,22 +445,43 @@
       var block = function (head, body) {
         if (body) blocks.push('<b>' + head + '</b> ' + cap1(esc(body)));
       };
+      // The heading for an axis states its verdict, and the verdict is looked up rather
+      // than written here, so an axis that changes when more clips are measured cannot
+      // keep a heading that says the opposite of its own paragraph.
+      var held = function (axis) {
+        var row = ((D.stats_pool_check || {}).axes || []).filter(function (r) {
+          return r.axis === axis; })[0];
+        if (row) return { holds: row.big.holds, needed: row.big.holds && !row.small.holds };
+        var c = axisClaim(axis);
+        return { holds: !!(c && c.survives_reseeding), needed: false };
+      };
+      var noiseV = held('sensor_noise'), radV = held('body_radius'),
+          lenV = held('worm_length'), dragV = held('drag_anisotropy');
       block('Sensor noise keeps its ordering.', f.noise_axis_CLEARS_the_floor);
       block('Body radius keeps its ordering.', f.radius_axis_CLEARS_the_floor);
-      block('Worm length does not, and a finding of this page goes with it.',
-            f.length_axis_DOES_NOT_clear_the_floor);
-      block('The axis that matters most does not either.',
+      block(lenV.needed ? 'Worm length keeps its ordering, but only once the pool is big enough.'
+            : lenV.holds ? 'Worm length keeps its ordering.'
+            : 'Worm length does not, and a finding of this page goes with it.',
+            f.length_axis_NEEDED_a_bigger_pool || f.length_axis_DOES_NOT_clear_the_floor);
+      block(dragV.holds ? 'The axis that matters most holds, and barely moves.'
+            : 'The axis that matters most does not, and that costs the page the most.',
             f.motion_axis_DOES_NOT_clear_the_floor);
       block('The statistic set moves the ordering too.', f.ranking_depends_on_statistic_choice);
       v2.innerHTML = blocks.join('<br><br>');
     }
+    drawPoolCheck();
+    drawSubsets();
     drawGranulometry();
   }
 
   // The claim this page makes about one axis, checked against the redrawn sweeps.
   // Small counts read better as words in a sentence than as digits.
   function word(k) {
-    var w = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+    var w = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+             'eleven', 'twelve'];
+    if (k === 50) return 'fifty';
+    if (k === 20) return 'twenty';
+    if (k === 25) return 'twenty-five';
     return (k >= 0 && k < w.length) ? w[k] : String(k);
   }
 
@@ -573,6 +595,105 @@
           'simulator under different names: within one draw they agree to the digit, and across ' +
           'draws they move together.' : '');
     }
+  }
+
+  // Whether the answer depends on which statistics are in the distance. Each group is
+  // something a laboratory might measure on its own, so a disagreement between them is
+  // not a technicality: it means two reasonable people get opposite answers from the
+  // same footage, and the scalar they both computed cannot tell them which is right.
+  function drawSubsets() {
+    var host = $('#subsets');
+    if (!host) return;
+    var sr = D.subset_rankings;
+    var pools = sr && sr.pools ? Object.keys(sr.pools).map(Number).sort(function (a, b) { return b - a; }) : [];
+    if (!pools.length) { host.innerHTML = ''; return; }
+    var pool = pools[0], axes = sr.pools[String(pool)], names = Object.keys(sr.subsets || {});
+    var order = ['all', 'spatial', 'granulometry', 'motion'].filter(function (k) {
+      return names.indexOf(k) >= 0; });
+    var split = Object.keys(axes).filter(function (a) { return axes[a].answer_depends_on_weighting; });
+
+    var head = '<thead><tr><th>Simulator setting</th>' + order.map(function (k) {
+      return '<th>' + esc(k === 'all' ? 'All fourteen' : sr.subsets[k]) + '</th>'; }).join('') +
+      '</tr></thead>';
+    var rows = Object.keys(axes).sort().map(function (a) {
+      var r = axes[a];
+      return '<tr><td class="l">' + esc(axisLabel(a)) + '</td>' + order.map(function (k) {
+        var v = r.by_subset[k];
+        if (!v) return '<td class="num">n/a</td>';
+        var odd = r.subsets_that_point_elsewhere.indexOf(k) >= 0;
+        return '<td class="num' + (odd ? ' neg' : '') + '">' + n(v.prefers_value) +
+          (v.every_setting_keeps_its_side ? '' : '<span class="plus"> unstable</span>') + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+
+    host.innerHTML =
+      '<h3 style="margin-top:28px">Whether the answer depends on which statistics you use</h3>' +
+      '<p class="small">The distance averages fourteen statistics with equal weight, and nothing ' +
+      'justifies that weight. So the fourteen were split into the three groups a laboratory might ' +
+      'plausibly measure on its own, and each group ranked the configurations by itself, on the ' +
+      'pool of ' + word(pool) + ' clips per configuration. Each cell is the setting that group ' +
+      'puts closest to real.' +
+      (split.length
+        ? ' On ' + split.map(function (a) { return esc(axisLabel(a)); }).join(' and ') +
+          ' the groups point to opposite sides of the repository\'s own value, each of them ' +
+          'consistently across every draw, so the combined answer on that axis is decided by how ' +
+          'many statistics sit in each group rather than by the footage.'
+        : ' Every group points the same way as the whole on every axis, so no answer here rests ' +
+          'on the weighting.') +
+      '</p>' +
+      '<div class="tscroll"><table>' + head + '<tbody>' + rows + '</tbody></table></div>' +
+      '<p class="hint">Red marks a group pointing to the other side of the repository value from ' +
+      'the full distance. A cell marked unstable is one where the settings on that axis did not ' +
+      'all keep the same side across draws, so that group has no direction to report.</p>';
+  }
+
+  // Whether the pool each configuration is measured from was big enough. A difference
+  // too small to resolve on a small pool is unresolved rather than absent, and the two
+  // call for different sentences. The only way to tell them apart is to measure again
+  // on a bigger pool, so the whole sweep was run again at five times the clips.
+  function drawPoolCheck() {
+    var pc = D.stats_pool_check, host = $('#poolcheck');
+    if (!host) return;
+    if (!pc || !pc.axes || !pc.axes.length) { host.innerHTML = ''; return; }
+    var moved = pc.axes.filter(function (r) { return !r.agrees; });
+    var gapTxt = function (side) {
+      if (side.gap == null) return 'nothing beats the repository value';
+      return num(side.gap, 3) + ' &plusmn; ' + num(side.scatter, 3);
+    };
+    var rows = pc.axes.map(function (r) {
+      return '<tr><td class="l">' + esc(axisLabel(r.axis)) + '</td>' +
+        '<td class="num ' + (r.small.holds ? 'pos' : 'neg') + '">' +
+          (r.small.holds ? 'holds' : 'moves') + '</td>' +
+        '<td class="num">' + gapTxt(r.small) + '</td>' +
+        '<td class="num ' + (r.big.holds ? 'pos' : 'neg') + '">' +
+          (r.big.holds ? 'holds' : 'moves') + '</td>' +
+        '<td class="num">' + gapTxt(r.big) + '</td></tr>';
+    }).join('');
+
+    host.innerHTML =
+      '<h3 style="margin-top:28px">Whether ' + word(pc.small_clips) + ' clips was enough to decide</h3>' +
+      '<p class="small">Each configuration above is measured from a pool of ' + word(pc.small_clips) +
+      ' synthetic clips, which is what makes the spread as large as it is. A difference too small ' +
+      'to resolve on that pool is unresolved rather than absent, and those call for different ' +
+      'sentences. So the whole sweep was run again at ' + word(pc.big_clips) + ' clips per ' +
+      'configuration, on ' + word(pc.big_seeds) + ' draws.' +
+      (moved.length
+        ? ' ' + cap1(word(pc.axes.length - moved.length)) + ' of the ' + word(pc.axes.length) +
+          ' axes give the same verdict at both sizes. ' + moved.map(function (r) {
+            return '<b>' + cap1(esc(axisLabel(r.axis))) + ' does not</b>, and the bigger pool is the ' +
+              'one to believe: it ' + (r.big.holds ? 'resolves a difference the smaller pool could ' +
+              'not see, so the right sentence is that ' + word(pc.small_clips) + ' clips could not ' +
+              'settle this axis rather than that the axis is flat'
+              : 'fails to reproduce what the smaller pool showed, so the smaller result was the pool ' +
+              'talking') + '.';
+          }).join(' ')
+        : ' Every axis gives the same verdict at both sizes, which is the check that matters: a ' +
+          'conclusion that survives five times the clips is not a property of the pool.') +
+      '</p>' +
+      '<div class="tscroll"><table><thead><tr><th>Simulator setting</th>' +
+      '<th>At ' + pc.small_clips + ' clips</th><th>Best gap, paired</th>' +
+      '<th>At ' + pc.big_clips + ' clips</th><th>Best gap, paired</th></tr></thead><tbody>' +
+      rows + '</tbody></table></div>';
   }
 
   // The size curve behind the radius warning. Every line is the share of bright pixels in a

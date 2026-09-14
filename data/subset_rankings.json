@@ -1,0 +1,1004 @@
+{
+ "what": "the same configurations ranked again using only part of the distance, to show whether the answer is a measurement or a weighting choice",
+ "how": "paired inside each draw against the repository's value on the same axis, then averaged over draws. A subset has a direction only if the sign holds in every draw.",
+ "subsets": {
+  "all": "all fourteen, weighted equally",
+  "spatial": "what one frame looks like",
+  "granulometry": "the size curve from openings",
+  "motion": "what changes between frames"
+ },
+ "pools": {
+  "10": {
+   "body_radius": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.1878267275968859,
+        "sd": 0.0186966594210045,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.18782666033453102,
+        "sd": 0.01869661846175936,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.27267795669072853,
+        "sd": 0.023440671312268575,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.1743488798290791,
+        "sd": 0.04687411484127901,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.1758430260616607,
+        "sd": 0.017988845749902355,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.17584286610986388,
+        "sd": 0.017988905814412263,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.22529616205819689,
+        "sd": 0.10664835422991674,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.20781087459025588,
+        "sd": 0.029990517909670954,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.03073221626477338,
+        "sd": 0.011377259073802444,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.030732214329350537,
+        "sd": 0.01137725986815902,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": -0.07041303679195839,
+        "sd": 0.06997160968536931,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": -0.11348286117165131,
+        "sd": 0.20550862187847818,
+        "same_sign_in_every_draw": false
+       }
+      ],
+      "prefers": "R_080",
+      "prefers_value": 0.8,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": false
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.47361831622085737,
+        "sd": 0.1043667261700061,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.4736183254591661,
+        "sd": 0.10436671638399535,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.9392598684269365,
+        "sd": 0.08755511039372184,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.5871444586412763,
+        "sd": 0.09948992884574656,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 1.2,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "drag_anisotropy": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.003172849182508708,
+        "sd": 0.006821561542786275,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.012513929827396075,
+        "sd": 0.0016818202750059552,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "alpha_wide",
+      "prefers_value": 8.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": 0.01595264271535013,
+        "sd": 0.017675603883904895,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.015446420306489054,
+        "sd": 0.004734181682680518,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "alpha_tight",
+      "prefers_value": 1.5,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.0014318593373558498,
+        "sd": 0.001739201438322591,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": -0.0015427564277709545,
+        "sd": 0.0018068076988541027,
+        "same_sign_in_every_draw": false
+       }
+      ],
+      "prefers": "alpha_repo",
+      "prefers_value": 4.0,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": false
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.0443254827201478,
+        "sd": 0.0025058295971329644,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.030076759294488387,
+        "sd": 0.001572053436317893,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "alpha_wide",
+      "prefers_value": 8.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 8.0,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "sensor_noise": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -1.0296782311827426,
+        "sd": 0.20631612133088553,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -2.2300962240228053,
+        "sd": 0.18272447881320367,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -2.7778959323759023,
+        "sd": 0.13720854470970056,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -0.34254811519854417,
+        "sd": 0.06133169641351733,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -1.6449203060317663,
+        "sd": 0.0977993498888451,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -2.3098220620543284,
+        "sd": 0.028302136311881367,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -2.080855141367173,
+        "sd": 0.6374114033172901,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -1.2176351011789803,
+        "sd": 0.3139173089573497,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -1.285521814747346,
+        "sd": 0.3230269563864795,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -0.6519769461770891,
+        "sd": 0.02834269511272569,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -5.087883264744591,
+        "sd": 0.1458772204501522,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -6.201333869066645,
+        "sd": 0.0633514903646573,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 0.01,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "worm_length": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": -0.0081941532787236,
+        "sd": 0.04465765401290703,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.013730973978455241,
+        "sd": 0.02104729291540104,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.027926856200295374,
+        "sd": 0.013945633490723579,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_25_35",
+      "prefers_value": 30.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": -0.15489232021325103,
+        "sd": 0.07828094003831601,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": -0.06962493863713626,
+        "sd": 0.046450866513542834,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": 0.056773465331389494,
+        "sd": 0.02979033695571384,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_35_55",
+      "prefers_value": 45.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": 0.002291631467135615,
+        "sd": 0.047511371407702875,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.0023731770420416846,
+        "sd": 0.020547130408761383,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.0073432118867695585,
+        "sd": 0.007065359563424304,
+        "same_sign_in_every_draw": false
+       }
+      ],
+      "prefers": "L_25_35",
+      "prefers_value": 30.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": 0.26772587268056597,
+        "sd": 0.02053716637170993,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.19937246077032747,
+        "sd": 0.007531491481144319,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.23163357311954144,
+        "sd": 0.01146911437981405,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_20_30",
+      "prefers_value": 25.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 30.0,
+    "subsets_that_point_elsewhere": [
+     "spatial"
+    ],
+    "answer_depends_on_weighting": true
+   }
+  },
+  "50": {
+   "body_radius": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.19097561276044048,
+        "sd": 0.010683581843933287,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.19097563710696933,
+        "sd": 0.010683582647304986,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.2976411305589485,
+        "sd": 0.040528292729982804,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.22262756697646338,
+        "sd": 0.024016169277510126,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.1339727495559537,
+        "sd": 0.01818325876155747,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.13397279734825704,
+        "sd": 0.018183226147648113,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.2733019879484553,
+        "sd": 0.08176129689871203,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.206120937491556,
+        "sd": 0.08381311612550528,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.03520085813888196,
+        "sd": 0.002292154311827873,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.03520085531706918,
+        "sd": 0.002292154450731643,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.002485172734847274,
+        "sd": 0.005828011672131045,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.08067112161604768,
+        "sd": 0.0641084064580417,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_160",
+      "prefers_value": 1.6,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "R_040",
+        "value": 0.4,
+        "mean_gap_to_repo": -0.5646059302053449,
+        "sd": 0.04359520162559266,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_060",
+        "value": 0.6,
+        "mean_gap_to_repo": -0.5646059529408943,
+        "sd": 0.04359520576656328,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_120",
+        "value": 1.2,
+        "mean_gap_to_repo": 0.8382460121534367,
+        "sd": 0.035473388246995245,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "R_160",
+        "value": 1.6,
+        "mean_gap_to_repo": 0.49223490154697075,
+        "sd": 0.04245304641591258,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "R_120",
+      "prefers_value": 1.2,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 1.2,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "drag_anisotropy": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.00796565167862843,
+        "sd": 0.006115824004843878,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.0060380728335187595,
+        "sd": 0.002735826386992694,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "alpha_wide",
+      "prefers_value": 8.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": 0.002718832199423741,
+        "sd": 0.015555781946412162,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": -0.0023881347777816218,
+        "sd": 0.006201436657885092,
+        "same_sign_in_every_draw": false
+       }
+      ],
+      "prefers": "alpha_tight",
+      "prefers_value": 1.5,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.0005883070938993429,
+        "sd": 0.001964360380031066,
+        "same_sign_in_every_draw": false
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.00016753065295923206,
+        "sd": 0.0004212819461618995,
+        "same_sign_in_every_draw": false
+       }
+      ],
+      "prefers": "alpha_wide",
+      "prefers_value": 8.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": false
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "alpha_tight",
+        "value": 1.5,
+        "mean_gap_to_repo": -0.0416301937426146,
+        "sd": 0.003914958401614415,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "alpha_wide",
+        "value": 8.0,
+        "mean_gap_to_repo": 0.03267472502371849,
+        "sd": 0.0007563587450393143,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "alpha_wide",
+      "prefers_value": 8.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 8.0,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "sensor_noise": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -0.8370297251240684,
+        "sd": 0.09724565454038668,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -2.0242569899389857,
+        "sd": 0.04980580488061364,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -2.6467830155228453,
+        "sd": 0.03384451908754086,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -0.36185833186766425,
+        "sd": 0.0061836058003737465,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -1.4792471026421925,
+        "sd": 0.008621315009240104,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -2.264432139947914,
+        "sd": 0.03406444405045143,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -1.5006495811143983,
+        "sd": 0.2597829739195244,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -0.8955534937652161,
+        "sd": 0.131344409138084,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -0.9534434992463863,
+        "sd": 0.13487334620182664,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "noise_000",
+        "value": 0.0,
+        "mean_gap_to_repo": -0.6813394183196602,
+        "sd": 0.02864263874008569,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_005",
+        "value": 0.05,
+        "mean_gap_to_repo": -4.995449258155522,
+        "sd": 0.024704365312192555,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "noise_010",
+        "value": 0.1,
+        "mean_gap_to_repo": -6.233717293800139,
+        "sd": 0.011626914127691595,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "noise_001",
+      "prefers_value": 0.01,
+      "prefers_the_repo_value": true,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 0.01,
+    "subsets_that_point_elsewhere": [],
+    "answer_depends_on_weighting": false
+   },
+   "worm_length": {
+    "by_subset": {
+     "all": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": 0.05588603394432053,
+        "sd": 0.006264221961323395,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.03185100436346089,
+        "sd": 0.005149959155680822,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.030488279363232246,
+        "sd": 0.00956639814739737,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_20_30",
+      "prefers_value": 25.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "spatial": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": -0.06545096259581051,
+        "sd": 0.01432384310175147,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": -0.054700833874984145,
+        "sd": 0.012070622278287124,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": 0.06438512210990348,
+        "sd": 0.01885243994867322,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_35_55",
+      "prefers_value": 45.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "granulometry": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": 0.03116464284325482,
+        "sd": 0.0017931821327189556,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.015407002059127003,
+        "sd": 0.0012321566850551713,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.009187412805808703,
+        "sd": 0.0004526880196750213,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_20_30",
+      "prefers_value": 25.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     },
+     "motion": {
+      "entries": [
+       {
+        "config": "L_20_30",
+        "value": 25.0,
+        "mean_gap_to_repo": 0.33976234552635876,
+        "sd": 0.011557408877773232,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_25_35",
+        "value": 30.0,
+        "mean_gap_to_repo": 0.23236135134757396,
+        "sd": 0.007633560383231654,
+        "same_sign_in_every_draw": true
+       },
+       {
+        "config": "L_35_55",
+        "value": 45.0,
+        "mean_gap_to_repo": -0.2557365265718763,
+        "sd": 0.011375534261509255,
+        "same_sign_in_every_draw": true
+       }
+      ],
+      "prefers": "L_20_30",
+      "prefers_value": 25.0,
+      "prefers_the_repo_value": false,
+      "every_setting_keeps_its_side": true
+     }
+    },
+    "full_distance_prefers": 25.0,
+    "subsets_that_point_elsewhere": [
+     "spatial"
+    ],
+    "answer_depends_on_weighting": true
+   }
+  }
+ }
+}
