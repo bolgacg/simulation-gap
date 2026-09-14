@@ -611,53 +611,41 @@
             'additional distinct worm count is another shape to compile.'
           : '')
       : '';
-    var lims = D.limits || [];
-    $('#lim1').textContent = lims[0] || 'One setting is moved at a time, so nothing here says what happens when two are wrong together, which is the usual case.';
-    $('#lim2').textContent = lims[1] || 'The real footage is one published labelled set from the same laboratory that wrote the simulator, so it is the friendliest real data this system will ever see.';
-
-    // The hardest limit on this page, and it is a limit on the approach rather than on
-    // the sweep: a real worm outside the length range the simulator draws from is a worm
-    // no configuration can produce, so no amount of tuning reaches it.
-    var cov = (D.labelling_check || {}).simulator_length_coverage;
-    var l3 = $('#lim3');
-    if (l3) {
-      if (!cov) { l3.textContent = ''; }
-      else {
-        var dates = Object.keys(cov.by_recording_date || {}).filter(function (k) { return /\d{4}-/.test(k); });
-        var spread = '';
-        if (dates.length >= 2) {
-          var a = cov.by_recording_date[dates[0]], b2 = cov.by_recording_date[dates[dates.length - 1]];
-          spread = ' And there is no single right answer to aim at: worms recorded on ' + esc(dates[0]) +
-            ' have a median length of ' + a.median_length_px + ' px against ' + b2.median_length_px +
-            ' px on ' + esc(dates[dates.length - 1]) + ', so one length setting cannot match both ' +
-            'and every configuration here is being tuned against a mixture.';
-        }
-        l3.innerHTML = '<b>Only ' + cov.inside_range_pct + ' percent of the real worms are inside the ' +
-          'length range the simulator can produce</b>, which is ' + cov.simulator_length_range_px[0] +
-          ' to ' + cov.simulator_length_range_px[1] + ' pixels against a real median of ' +
-          cov.real_length_px.median + '. A worm outside that range is one no configuration on this page ' +
-          'can generate, so it is a limit on the whole approach rather than on this sweep.' + spread;
-      }
+    // Every limit the study wrote, plus the two this page measures for itself, rendered
+    // into one container. Fixed slots used to drop all but the first two, and a paragraph
+    // cannot hold paragraphs, which duplicated one when they were pushed into it.
+    var lims = (D.limits || []).slice();
+    if ((D.configs || []).some(function (c) { return c.per_statistic_z; })) {
+      lims.push('The ordering by unlabelled statistics is sensitive to which statistics are in it. ' +
+        'Adding the three frame-to-frame motion measures reversed the preferred direction on the ' +
+        'length axis, so read the ordering as one defensible choice rather than as the answer.');
     }
-    // Nothing on the page said whether the study had finished, so a reader could not tell
-    // a null result from an unfinished one, and there was no action at the end.
-    var st = $('#standing');
-    if (st) {
-      var cfgs = D.configs || [];
-      var done = cfgs.filter(function (c) { return c.real_score != null; }).length;
-      var when = String(D.generated_at || '').slice(0, 10);
-      st.innerHTML =
-        (done >= cfgs.length && cfgs.length
-          ? 'The sweep is finished. All ' + cfgs.length + ' configurations trained and scored'
-          : done + ' of ' + cfgs.length + ' configurations have trained and scored, so the sweep is ' +
-            'not finished and the last act should be read as provisional') +
-        (when ? ', as of ' + esc(when) + '.' : '.') +
-        ' Everything here is rebuilt by the scripts in the repository from the run output, so if you ' +
-        'disagree with a threshold or a choice of setting you can change it and rerun rather than ' +
-        'argue with the page. The two things I would do next, in order, are to repeat every ' +
-        'configuration rather than only the defaults, which is what would turn the ordering in act ' +
-        'two from a lead into a result, and to score inside the labelled region so precision becomes ' +
-        'a rate rather than a floor.';
+    var cov = (D.labelling_check || {}).simulator_length_coverage;
+    if (cov) {
+      var dates = Object.keys(cov.by_recording_date || {}).filter(function (k) { return /\d{4}-/.test(k); });
+      var spread = '';
+      if (dates.length >= 2) {
+        var a0 = cov.by_recording_date[dates[0]], b0 = cov.by_recording_date[dates[dates.length - 1]];
+        spread = ' And there is no single target: worms recorded on ' + dates[0] + ' have a median length of ' +
+          a0.median_length_px + ' px against ' + b0.median_length_px + ' px on ' + dates[dates.length - 1] + '.';
+      }
+      lims.push('Only ' + cov.inside_range_pct + ' percent of the real worms are inside the length range ' +
+        'the simulator can produce, ' + cov.simulator_length_range_px[0] + ' to ' +
+        cov.simulator_length_range_px[1] + ' pixels against a real median of ' + cov.real_length_px.median +
+        '. A worm outside that range is one no configuration here can generate, which is a limit on the ' +
+        'approach rather than on this sweep.' + spread);
+    }
+    lims.push('One species, one imaging setup, one laboratory\'s footage. Nothing here says which settings ' +
+      'matter for a different organism or a different microscope.');
+    var host2 = $('#limitlist');
+    if (host2) {
+      host2.innerHTML = '';
+      lims.forEach(function (t, i) {
+        var pEl = document.createElement('p');
+        pEl.textContent = t;
+        if (i) pEl.style.marginTop = '6px';
+        host2.appendChild(pEl);
+      });
     }
 
     if (D.repo) {
