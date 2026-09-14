@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which knob decides whether a model trained on simulations works on real data?</title>
+<meta name="description" content="A sweep of the simulator behind deeptangle, the detector Kirkegaard's lab trained entirely on synthetic worms, asking whether unlabelled image statistics can pick the simulator settings that work on real microscopy. Bolgac Gulen, 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+
+:root{--paper:#faf9f7;--ink:#1a1d21;--soft:#5b6470;--faint:#8b95a1;--rule:#e2e0dc;--rule2:#c9c5be;--panel:#f3f1ed;--card:#fff;
+  --pos:#2f7d54;--neg:#b03a3a;--accent:#2c4a6b;--amber:#c8860d;--s1:#2a78d6;--s2:#eb6834;
+  --serif:'Newsreader',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-bottom:110px}
+a{color:var(--accent);text-decoration:none;font-weight:500}a:hover{text-decoration:underline}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+header{padding:48px 0 30px;border-bottom:1px solid var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(32px,5vw,52px);line-height:1.08;letter-spacing:-.01em;margin:12px 0 14px;max-width:820px;text-wrap:balance}
+.dek{max-width:760px;color:var(--soft);font-size:18.5px;font-family:var(--serif);line-height:1.5}
+.dek strong{color:var(--ink);font-weight:600}
+.byline{margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+section{padding:44px 0 6px}
+.sec-label{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:600;font-size:29px;line-height:1.2;margin-bottom:10px;text-wrap:balance}
+h3{font-family:var(--serif);font-size:20px;font-weight:600}
+p{margin-bottom:12px}
+.lede{color:var(--soft);max-width:760px;margin-bottom:20px}
+.lede strong,.lede em{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:22px 24px;margin-top:16px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:12px;padding:6px 12px;border:1px solid var(--rule2);border-radius:3px;background:var(--card);color:var(--soft);cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--soft)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:500}
+.viz{position:relative}.viz svg{width:100%;height:auto;display:block}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font:12px var(--mono);padding:6px 8px;border-radius:4px;display:none;white-space:nowrap;z-index:5}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--soft);margin:6px 0 0 4px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:16px;height:0;border-top:2px solid;display:inline-block}
+.legend i.bar{height:10px;border:0;width:12px}
+.verdict{margin-top:16px;padding:2px 0 2px 16px;border-left:3px solid var(--accent);font-size:15px;max-width:760px}
+.verdict.sting{border-left-color:var(--neg)}.verdict b{color:var(--accent)}.verdict.sting b{color:var(--neg)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);text-align:right;padding:0 0 8px;border-bottom:1px solid var(--rule)}
+th:first-child{text-align:left}
+td{padding:8px 0;border-bottom:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;vertical-align:top}
+td:first-child{text-align:left}td.l{text-align:left}th+th,td+td{padding-left:14px}td.num{white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.tscroll{overflow-x:auto}
+.note{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.5}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.hint{font-size:12px;color:var(--faint);line-height:1.45}
+code{font-family:var(--mono);font-size:12.5px}
+.quote{font-family:var(--serif);font-size:17px;color:var(--ink);border-left:3px solid var(--amber);padding:2px 0 2px 16px;margin:14px 0;max-width:760px}
+.quote small{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px}
+.limits{margin-top:22px;border-left:3px solid var(--neg);padding:2px 0 2px 16px;max-width:760px}
+.limits p{font-size:14px;color:var(--soft)}
+.small{font-size:13.5px;color:var(--soft)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 24px;font-size:13px;color:var(--soft);margin-top:10px}
+.gloss b{color:var(--ink);font-family:var(--mono);font-size:12px;font-weight:500}
+footer{border-top:1px solid var(--rule);margin-top:44px;padding:20px 0 30px;font-family:var(--mono);font-size:12px;color:var(--faint)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tour{position:absolute;top:0;left:0;right:0;z-index:50;display:none;pointer-events:none}
+#tour.on{display:block}
+.tour-hl{position:absolute;border:2px solid var(--accent);border-radius:8px;box-shadow:0 0 0 9999px rgba(26,29,33,.55);transition:all .35s ease;pointer-events:none}
+.tour-card{position:absolute;width:min(400px,calc(100vw - 32px));background:var(--card);border:1px solid var(--rule2);border-radius:8px;padding:18px 20px;box-shadow:0 6px 30px rgba(0,0,0,.18);pointer-events:auto}
+.tour-card .tk{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.tour-card p{font-size:14px;line-height:1.55;color:var(--ink);margin:0 0 12px}
+.tour-nav{display:flex;align-items:center;gap:8px}
+.tour-nav .dots{flex:1;display:flex;gap:5px}
+.tour-nav .dots i{width:6px;height:6px;border-radius:50%;background:var(--rule2)}
+.tour-nav .dots i.on{background:var(--accent)}
+.tour-btn{font-family:var(--mono);font-size:12px;padding:7px 14px;border-radius:4px;border:1px solid var(--rule2);background:var(--card);color:var(--soft);cursor:pointer}
+.tour-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tour-open{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:4px;border:1px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer}
+.tour-open:hover{background:var(--accent);color:#fff}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0;background:var(--panel);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-top:14px}
+.stat>div{padding:12px 14px;border-left:1px solid var(--rule)}.stat>div:first-child{border-left:none}
+.stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.stat .n{font-family:var(--mono);font-size:20px;font-weight:500}.stat .s{font-size:11.5px;color:var(--soft);margin-top:3px}
+.howto{font-size:13px;color:var(--soft);margin:8px 0 0;line-height:1.5}
+.howto b{color:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
+.card-title{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px}
+.pill{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--rule2);border-radius:3px;padding:3px 7px;color:var(--soft);white-space:nowrap;margin-left:6px}
+.pill.bad{color:var(--neg);border-color:var(--neg)}
+.pill.ok{color:var(--pos);border-color:var(--pos)}
+.pill.mid{color:var(--amber);border-color:var(--amber)}
+.why{font-size:14.5px;color:var(--ink);background:var(--panel);border-radius:4px;padding:10px 14px;margin:0 0 12px}
+.why b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-right:6px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin:18px 0 6px;max-width:880px}
+.qgrid div{border-top:1px solid var(--rule);padding-top:8px;font-size:14.5px;line-height:1.5;color:var(--soft)}
+.qgrid b{display:block;font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:600;margin-bottom:2px}
+@media (max-width:640px){.qgrid{grid-template-columns:1fr}}
+.slider{width:100%;max-width:520px;accent-color:var(--accent)}
+.rowsel{cursor:pointer}
+.rowsel:hover td{background:var(--panel)}
+tr.on td{background:#eef2f7}
+.mono{font-family:var(--mono)}
+.flex{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.grow{flex:1;min-width:280px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.mapwrap{position:relative;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:10px}
+.mapwrap svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.rt{cursor:pointer}
+.rt path.hit{stroke:transparent;stroke-width:22;fill:none}
+.rt path.line{fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .12s}
+.rt:hover path.line{stroke-width:7}
+.rt.sel path.line{stroke-width:8}
+.rt.off path.line{stroke:#9aa3ad;stroke-dasharray:9 7;stroke-width:3.5}
+.rt.off{cursor:not-allowed}
+.daybar{display:flex;gap:3px;flex-wrap:wrap;margin:10px 0 0}
+.daybar i{width:20px;height:20px;border-radius:3px;background:var(--panel);border:1px solid var(--rule);
+  font:10px var(--mono);display:flex;align-items:center;justify-content:center;color:var(--faint);font-style:normal}
+.daybar i.done{background:var(--accent);border-color:var(--accent);color:#fff}
+.daybar i.now{border-color:var(--ink);color:var(--ink);font-weight:600}
+.daybar i.shut{background:#f6e7e7;border-color:var(--neg);color:var(--neg)}
+.bigbtn{font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:4px;border:1px solid var(--accent);
+  background:var(--accent);color:#fff;cursor:pointer}
+.bigbtn.ghost{background:var(--card);color:var(--accent)}
+.bigbtn:disabled{opacity:.45;cursor:default}
+.readout{font-family:var(--mono);font-size:13px;color:var(--soft);margin-top:8px;min-height:1.5em}
+.fitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px}
+.fitbox{background:var(--panel);border-radius:5px;padding:12px 14px}
+.fitbox .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.fitbox .n{font-family:var(--mono);font-size:22px;font-weight:500;margin:4px 0 2px}
+.fitbox .s{font-size:12px;color:var(--soft);line-height:1.45}
+
+.axisrow{border-top:1px solid var(--rule);padding:10px 0}
+.axisrow .t{font-family:var(--serif);font-size:18px;font-weight:600}
+.axisrow .s{font-size:13px;color:var(--soft)}
+.knob{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:6px}
+.knob .v{font-family:var(--mono);font-size:12px;color:var(--soft);border:1px solid var(--rule2);border-radius:3px;padding:3px 8px;cursor:pointer}
+.knob .v[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+</style>
+</head>
+<body>
+<div id="tour"><div class="tour-hl"></div><div class="tour-card"></div></div>
+
+<header><div class="wrap">
+  <div class="eyebrow">Work sample &middot; for the IMAGE section, DIKU &middot; September 2026</div>
+  <h1>Which knob decides whether a model trained on simulations works on real data?</h1>
+  <p class="dek" id="dek">Loading.</p>
+  <div class="byline">
+    <span>Bolga&ccedil; G&uuml;len</span>
+    <span id="byrepo">kirkegaardlab/deeptangle</span>
+    <a href="https://github.com/bolgacg/simulation-gap">github.com/bolgacg/simulation-gap</a>
+    <button class="tour-open" id="tourbtn">Walk me through it</button>
+  </div>
+</div></header>
+
+<section id="primer"><div class="wrap">
+  <div class="sec-label">Before anything else</div>
+  <h2>Five things to know</h2>
+  <div class="card">
+    <ol class="small" style="padding-left:18px;line-height:1.75">
+      <li><b>deeptangle</b> finds worms in microscopy footage where they overlap and tangle. It was
+        published by this group in 2023 and its code is open.</li>
+      <li>It never saw a real worm in training. Every training frame came from a <b>simulator</b>
+        written alongside it, which draws worms and moves them according to physics.</li>
+      <li>That is the idea the DREAM project is built on: train on synthetic data where the answer
+        is known by construction, then close the distance to real experiments.</li>
+      <li>The simulator has settings, and someone chose them. This page asks <b>which of those
+        choices the result actually depends on</b>, by changing one at a time, retraining, and
+        scoring against real footage a human labelled.</li>
+      <li>Then the real question: can you pick good settings <b>without any labels at all</b>, just
+        by making the synthetic images look statistically like the real ones? That is the part of
+        the project that would matter in a laboratory, and it is the last act.</li>
+    </ol>
+  </div>
+
+  <div class="card" id="domain">
+    <div class="card-title">The loop this page measures</div>
+    <div class="viz" id="domainviz"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Terms</div>
+    <div class="gloss">
+      <div><b>simulator setting</b> One of the numbers deciding what a synthetic worm looks like
+        and how it moves. There are 27 of them and none is exposed as a command-line option.</div>
+      <div><b>real score</b> How well a trained model finds the worms a human marked in real
+        footage. Higher is better.</div>
+      <div><b>image statistics</b> Numbers describing what a frame looks like, computed the same
+        way on synthetic and real footage, using no labels.</div>
+      <div><b>the gap</b> The distance between doing well on synthetic frames and doing well on
+        real ones. Closing it without labels is the project's stated aim.</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="words"><div class="wrap">
+  <div class="sec-label">Their words</div>
+  <h2>The question is the fellowship's own</h2>
+  <p class="lede">The advertisement states the method and its hard part in the same breath, and
+  this page takes the hard part literally.</p>
+  <div class="quote">The aim is to train models on synthetic data generated by biophysical
+    simulations by developing simulations that can be automatically tuned to be realistic enough
+    that the trained models generalize to real experimental data. [...] A central challenge is to
+    automatically tune simulations so that synthetic datasets match the variability, noise, and
+    structure of real, unlabelled biological datasets.
+    <small>University of Copenhagen, PhD fellowship 165870, Simulation-Supervised Machine Learning
+      for Biology, read 14 September 2026</small></div>
+  <p class="small">The system in this page is the group's own, the simulator is the group's own,
+  and the real footage is the group's own published labelled set. Nothing here is a demonstration
+  built beside the work; it is a measurement taken inside it. The point of choosing it that way is
+  that the answer either transfers to the fellowship's first month or it does not, with no
+  translation step in between.</p>
+</div></section>
+
+<section id="act1"><div class="wrap">
+  <div class="sec-label">Act one</div>
+  <h2>What the published model scores on real footage</h2>
+  <p class="why"><b>Why this matters</b> Every number later is a comparison against this one. If
+  the scoring code here disagrees with the paper, nothing that follows is worth reading.</p>
+  <div class="stat" id="baselinestat"></div>
+  <div class="verdict" id="v1"></div>
+</div></section>
+
+<section id="act2"><div class="wrap">
+  <div class="sec-label">Act two</div>
+  <h2>One knob at a time</h2>
+  <p class="why"><b>Why this matters</b> A simulator with 27 settings has 27 ways to be wrong.
+  Knowing which three matter is worth more than tuning all of them.</p>
+  <p class="lede">Each row is one setting of the simulator, moved away from what the authors chose,
+  with a model trained from scratch on the result and scored on the same real footage.</p>
+  <div class="chips" id="axischips" role="group" aria-label="Choose a simulator setting"></div>
+  <p class="howto"><b>Click a setting</b> to see what moving it does to the real score.</p>
+  <div class="card"><div class="viz" id="sweepviz"></div><div class="legend" id="sweeplegend"></div></div>
+  <div class="verdict" id="v2"></div>
+</div></section>
+
+<section id="act3"><div class="wrap">
+  <div class="sec-label">Act three</div>
+  <h2>Can you choose the settings without labels?</h2>
+  <p class="why"><b>Why this matters</b> In a laboratory the labels do not exist. If settings can
+  only be chosen by scoring against labelled data, the method needs the thing it was meant to
+  avoid.</p>
+  <p class="lede">Every configuration is ranked twice. Once by how well its model does on real
+  labelled footage, which is the answer. Once by how closely its synthetic frames resemble the real
+  ones statistically, which uses no labels at all. If the second ranking tracks the first, the
+  tuning loop the fellowship proposes has something to stand on.</p>
+  <div class="card"><div class="viz" id="thesisviz"></div><div class="legend" id="thesislegend"></div></div>
+  <div class="stat" id="thesisstat"></div>
+  <div class="verdict sting" id="v3"></div>
+</div></section>
+
+<section id="coda"><div class="wrap">
+  <div class="sec-label">How it was built</div>
+  <h2>Method, limits and sources</h2>
+
+  <h3>What was changed, and what was not</h3>
+  <p class="small">The published repository is used unmodified. The 27 simulator settings live as
+  literals inside two of its files, so a small layer replaces those two functions at run time with
+  configured versions and leaves the clone untouched. With no configuration supplied, the training
+  script is exactly the repository's own. That is deliberate: a study of someone's simulator that
+  first rewrites their simulator is not a study of their simulator.</p>
+  <p class="small" id="hardwaretext"></p>
+
+  <div class="limits">
+    <h3>Limits, stated before you find them</h3>
+    <p id="lim1"></p>
+    <p id="lim2"></p>
+    <p>One species, one imaging setup, one laboratory's footage. Nothing here says which settings
+      matter for a different organism or a different microscope, and the honest expectation is that
+      the answer differs.</p>
+    <p>Training runs here are shorter than the published one, so every score is lower than the
+      paper's and only the comparisons between them mean anything. The baseline in act one is there
+      precisely so the reader can see that offset rather than guess at it.</p>
+  </div>
+
+  <h3 style="margin-top:26px">Sources</h3>
+  <ul class="small" style="padding-left:18px;line-height:1.8">
+    <li id="src-repo">The detector and its simulator.</li>
+    <li id="src-data">The labelled real footage.</li>
+    <li>Advertisement for PhD fellowship 165870, Department of Computer Science, University of
+      Copenhagen.</li>
+    <li>This study's code: <a href="https://github.com/bolgacg/simulation-gap">github.com/bolgacg/simulation-gap</a>.</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap">
+  <span>Bolga&ccedil; G&uuml;len &middot; every number on this page is written by the scripts in this repository, not typed</span>
+  <a href="https://github.com/bolgacg/simulation-gap">github.com/bolgacg/simulation-gap</a>
+</div></footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

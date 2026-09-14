@@ -1,0 +1,49 @@
+{
+ "question": "are the labelled clips labelled exhaustively, or only in part",
+ "method": "the clips come from videos at stated worm densities from 1x to 13x. Exhaustive labelling means labels per clip rise in proportion to density, on a line through the origin. A fixed quota per clip does not.",
+ "clips": 178,
+ "labelled_centrelines": 1474,
+ "labels_per_clip_by_density": {
+  "1.0": {
+   "clips": 15,
+   "mean_labels": 1.33
+  },
+  "1.5": {
+   "clips": 19,
+   "mean_labels": 2.37
+  },
+  "2.0": {
+   "clips": 15,
+   "mean_labels": 2.8
+  },
+  "3.0": {
+   "clips": 17,
+   "mean_labels": 3.88
+  },
+  "4.0": {
+   "clips": 25,
+   "mean_labels": 6.24
+  },
+  "6.0": {
+   "clips": 23,
+   "mean_labels": 10.09
+  },
+  "8.0": {
+   "clips": 19,
+   "mean_labels": 9.53
+  },
+  "10.0": {
+   "clips": 19,
+   "mean_labels": 14.42
+  },
+  "13.0": {
+   "clips": 26,
+   "mean_labels": 17.62
+  }
+ },
+ "slope_labels_per_unit_density": 1.388,
+ "r_squared_through_origin": 0.9744,
+ "pearson_r": 0.9877,
+ "verdict_exhaustive": true,
+ "what_it_means_for_the_page": "labelling tracks density closely enough to treat each crop as fully labelled, so an unmatched detection counts as a false positive and precision is reportable"
+}

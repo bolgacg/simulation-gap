@@ -1,0 +1,18 @@
+# Model weights and the labelled clips. Both are other people's published
+# artifacts, fetched by the study rather than produced by it.
+data/weights/
+data/weights.zip
+data/labeled_data/
+data/labeled_data.zip
+data/shots/
+
+# Per-run training output. Large, and the sweep summary is what the page reads.
+runs/
+
+# Julius Kirkegaard's deeptangle, cloned by SETUP.md rather than vendored here.
+# It is his code under his licence; this repo records the commit it was run
+# against and patches it at run time instead of carrying a copy.
+deeptangle/
+
+__pycache__/
+*.pyc

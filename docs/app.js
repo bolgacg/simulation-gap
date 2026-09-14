@@ -1,0 +1,344 @@
+/* simulation-gap: what the sweep found, drawn from data.js only. */
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var C = 'http://www.w3.org/2000/svg';
+  function el(t, a, x) {
+    var n = document.createElementNS(C, t);
+    for (var k in a) n.setAttribute(k, a[k]);
+    if (x != null) n.textContent = x;
+    return n;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[<>&]/g, function (c) {
+      return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c];
+    });
+  }
+  function num(x, d) { return x == null ? 'n/a' : Number(x).toFixed(d == null ? 3 : d); }
+
+  var state = { axis: null };
+
+  function drawDomain() {
+    var host = $('#domainviz'); if (!host) return;
+    var W = 900, H = 190;
+    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Simulator settings produce synthetic footage, which trains a model, which is scored on real footage' });
+    var boxes = [
+      { x: 8, w: 196, t: 'Simulator settings', s: '27 numbers deciding what a synthetic worm looks like and how it moves' },
+      { x: 232, w: 196, t: 'Synthetic footage', s: 'frames where every worm position is known by construction' },
+      { x: 456, w: 196, t: 'A trained model', s: 'the published architecture, trained from scratch on those frames' },
+      { x: 692, w: 200, t: 'Real footage', s: 'clips a human labelled, which the model has never seen' }
+    ];
+    boxes.forEach(function (b, i) {
+      s.appendChild(el('rect', { x: b.x, y: 26, width: b.w, height: 116, rx: 6, fill: '#fff', stroke: '#c9c5be' }));
+      s.appendChild(el('text', { x: b.x + 13, y: 50, 'font-family': "'Newsreader',Georgia,serif",
+        'font-size': 16, 'font-weight': 600, fill: '#1a1d21' }, b.t));
+      var words = b.s.split(' '), line = '', y = 70;
+      var put = function (tx) {
+        s.appendChild(el('text', { x: b.x + 13, y: y, 'font-family': "'IBM Plex Sans',sans-serif",
+          'font-size': 11, fill: '#5b6470' }, tx));
+        y += 14;
+      };
+      words.forEach(function (w) { if ((line + ' ' + w).length > 28) { put(line); line = w; } else line = line ? line + ' ' + w : w; });
+      if (line) put(line);
+      if (i < boxes.length - 1) {
+        var x1 = b.x + b.w + 4, x2 = boxes[i + 1].x - 4;
+        s.appendChild(el('line', { x1: x1, y1: 84, x2: x2, y2: 84, stroke: '#8b95a1', 'stroke-width': 1.5 }));
+        s.appendChild(el('circle', { cx: x2 - 2, cy: 84, r: 2.5, fill: '#8b95a1' }));
+      }
+    });
+    s.appendChild(el('path', { d: 'M 890 148 L 890 170 L 106 170 L 106 148', fill: 'none',
+      stroke: '#b03a3a', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }));
+    s.appendChild(el('text', { x: 498, y: 166, 'text-anchor': 'middle', 'font-family': "'IBM Plex Sans',sans-serif",
+      'font-size': 11.5, fill: '#b03a3a' },
+      'The loop the fellowship wants closed without labels: let the real footage choose the settings.'));
+    host.innerHTML = ''; host.appendChild(s);
+  }
+
+  function axes() {
+    if (D.axes && D.axes.length) return D.axes;
+    var seen = {};
+    (D.configs || []).forEach(function (c) { seen[c.axis] = true; });
+    return Object.keys(seen).map(function (k) { return { key: k, label: k }; });
+  }
+
+  function renderAxes() {
+    var host = $('#axischips'); if (!host) return;
+    host.innerHTML = '';
+    var list = axes();
+    if (!state.axis && list.length) state.axis = list[0].key;
+    list.forEach(function (a) {
+      var b = document.createElement('button');
+      b.className = 'chip';
+      b.setAttribute('aria-pressed', a.key === state.axis ? 'true' : 'false');
+      b.textContent = a.label || a.key;
+      b.onclick = function () { state.axis = a.key; renderAxes(); drawSweep(); };
+      host.appendChild(b);
+    });
+  }
+
+  function drawSweep() {
+    var host = $('#sweepviz'); if (!host) return;
+    var rows = (D.configs || []).filter(function (c) { return c.axis === state.axis && c.real_score != null; })
+      .sort(function (a, b) { return (a.axis_value || 0) - (b.axis_value || 0); });
+    if (!rows.length) {
+      host.innerHTML = '<p class="small">No finished runs on this setting yet.</p>';
+      $('#sweeplegend').innerHTML = '';
+      return;
+    }
+    var axis = axes().filter(function (a) { return a.key === state.axis; })[0] || { label: state.axis };
+    var W = 860, H = 280, P = { l: 62, r: 30, t: 24, b: 48 };
+    var vals = rows.map(function (r) { return r.axis_value; });
+    var scores = rows.map(function (r) { return r.real_score; });
+    var base = D.defaults_run && D.defaults_run.real_score != null ? D.defaults_run.real_score : null;
+    var all = scores.concat(base != null ? [base] : []);
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi - lo < 1e-9) { hi = lo + 1; }
+    lo -= (hi - lo) * 0.15; hi += (hi - lo) * 0.12;
+    var vmin = Math.min.apply(null, vals), vmax = Math.max.apply(null, vals);
+    var X = function (v) { return vmax === vmin ? (W / 2) : P.l + (v - vmin) / (vmax - vmin) * (W - P.l - P.r); };
+    var Y = function (v) { return H - P.b - (v - lo) / (hi - lo) * (H - P.t - P.b); };
+    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Real-footage score against ' + (axis.label || state.axis) });
+    [lo, (lo + hi) / 2, hi].forEach(function (g) {
+      s.appendChild(el('line', { x1: P.l, y1: Y(g), x2: W - P.r, y2: Y(g), stroke: '#e2e0dc' }));
+      s.appendChild(el('text', { x: P.l - 8, y: Y(g) + 4, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, num(g, 2)));
+    });
+    if (base != null) {
+      s.appendChild(el('line', { x1: P.l, y1: Y(base), x2: W - P.r, y2: Y(base),
+        stroke: '#2c4a6b', 'stroke-dasharray': '5 4', 'stroke-width': 1.6 }));
+      s.appendChild(el('text', { x: W - P.r, y: Y(base) - 6, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#2c4a6b' },
+        'the settings the authors chose'));
+    }
+    var d = rows.map(function (r, i) { return (i ? 'L' : 'M') + X(r.axis_value).toFixed(1) + ' ' + Y(r.real_score).toFixed(1); }).join(' ');
+    s.appendChild(el('path', { d: d, fill: 'none', stroke: '#b03a3a', 'stroke-width': 2.4 }));
+    rows.forEach(function (r) {
+      s.appendChild(el('circle', { cx: X(r.axis_value), cy: Y(r.real_score), r: 4.5, fill: '#b03a3a' }));
+      s.appendChild(el('text', { x: X(r.axis_value), y: H - P.b + 16, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10.5, fill: '#8b95a1' }, String(r.axis_value)));
+    });
+    s.appendChild(el('text', { x: P.l, y: 14, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
+      'Score on real labelled footage, higher is better'));
+    s.appendChild(el('text', { x: W - P.r, y: H - 8, 'text-anchor': 'end',
+      'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
+      (axis.label || state.axis) + (axis.unit ? ', ' + axis.unit : '')));
+    host.innerHTML = ''; host.appendChild(s);
+    $('#sweeplegend').innerHTML = '<span class="hint">' +
+      esc(axis.why_it_might_matter || '') + '</span>';
+
+    var spread = Math.max.apply(null, scores) - Math.min.apply(null, scores);
+    var byAxis = {};
+    (D.configs || []).forEach(function (c) {
+      if (c.real_score == null) return;
+      byAxis[c.axis] = byAxis[c.axis] || [];
+      byAxis[c.axis].push(c.real_score);
+    });
+    var ranked = Object.keys(byAxis).map(function (k) {
+      var v = byAxis[k];
+      return { k: k, spread: Math.max.apply(null, v) - Math.min.apply(null, v) };
+    }).sort(function (a, b) { return b.spread - a.spread; });
+    var lbl = function (k) {
+      var a = axes().filter(function (x) { return x.key === k; })[0];
+      return (a && a.label ? a.label : k).toLowerCase();
+    };
+    $('#v2').innerHTML = ranked.length > 1
+      ? '<b>The settings do not matter equally.</b> Moving ' + lbl(ranked[0].k) + ' across its range changes the real score by ' +
+        num(ranked[0].spread, 3) + ', while moving ' + lbl(ranked[ranked.length - 1].k) + ' changes it by ' +
+        num(ranked[ranked.length - 1].spread, 3) + '. On this evidence a laboratory tuning this simulator should spend its time on the first and leave the last alone.'
+      : '<b>Moving ' + lbl(state.axis) + ' across its range changes the real score by ' + num(spread, 3) + '.</b>';
+  }
+
+  function drawThesis() {
+    var host = $('#thesisviz'); if (!host) return;
+    var rows = (D.configs || []).filter(function (c) {
+      return c.real_score != null && c.stat_distance_to_real != null;
+    });
+    if (rows.length < 3) {
+      host.innerHTML = '<p class="small">Not enough finished runs yet to compare the two rankings.</p>';
+      $('#thesisstat').innerHTML = '';
+      $('#v3').innerHTML = '<b>This act is empty until the sweep finishes.</b> It will either show that unlabelled statistics pick the settings that work, or that they do not, and both are worth publishing.';
+      return;
+    }
+    var W = 860, H = 320, P = { l: 70, r: 26, t: 22, b: 50 };
+    var xs = rows.map(function (r) { return r.stat_distance_to_real; });
+    var ys = rows.map(function (r) { return r.real_score; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var px = (x1 - x0) * 0.1 || 1, py = (y1 - y0) * 0.1 || 1;
+    x0 -= px; x1 += px; y0 -= py; y1 += py;
+    var X = function (v) { return P.l + (v - x0) / (x1 - x0) * (W - P.l - P.r); };
+    var Y = function (v) { return H - P.b - (v - y0) / (y1 - y0) * (H - P.t - P.b); };
+    var s = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Real score against how far the synthetic image statistics sit from the real ones' });
+    [0, 0.5, 1].forEach(function (f) {
+      var gy = y0 + f * (y1 - y0), gx = x0 + f * (x1 - x0);
+      s.appendChild(el('line', { x1: P.l, y1: Y(gy), x2: W - P.r, y2: Y(gy), stroke: '#e2e0dc' }));
+      s.appendChild(el('text', { x: P.l - 8, y: Y(gy) + 4, 'text-anchor': 'end',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, num(gy, 2)));
+      s.appendChild(el('text', { x: X(gx), y: H - P.b + 16, 'text-anchor': 'middle',
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 10, fill: '#8b95a1' }, num(gx, 2)));
+    });
+    rows.forEach(function (r) {
+      s.appendChild(el('circle', { cx: X(r.stat_distance_to_real), cy: Y(r.real_score), r: 5, fill: '#2c4a6b' }));
+      s.appendChild(el('text', { x: X(r.stat_distance_to_real) + 8, y: Y(r.real_score) + 4,
+        'font-family': "'IBM Plex Mono',monospace", 'font-size': 9.5, fill: '#8b95a1' }, esc(r.name)));
+    });
+    s.appendChild(el('text', { x: P.l, y: 13, 'font-family': "'IBM Plex Sans',sans-serif", 'font-size': 11.5, fill: '#5b6470' },
+      'Score on real labelled footage, higher is better'));
+    s.appendChild(el('text', { x: W - P.r, y: H - 8, 'text-anchor': 'end', 'font-family': "'IBM Plex Sans',sans-serif",
+      'font-size': 11.5, fill: '#5b6470' }, 'Distance between synthetic and real image statistics, no labels used'));
+    host.innerHTML = ''; host.appendChild(s);
+    $('#thesislegend').innerHTML = '<span class="hint">If the fellowship\'s idea holds, points fall from top left to bottom right: the settings that look most like the real thing are the settings that work.</span>';
+
+    var t = D.thesis_test || {};
+    $('#thesisstat').innerHTML =
+      '<div><div class="k">Configurations</div><div class="n">' + (t.n_configs != null ? t.n_configs : rows.length) +
+      '</div><div class="s">each a model trained from scratch</div></div>' +
+      '<div><div class="k">Rank agreement</div><div class="n">' + (t.spearman != null ? num(t.spearman, 2) : 'n/a') +
+      '</div><div class="s">between the two orderings</div></div>' +
+      '<div><div class="k">Best without labels</div><div class="n" style="font-size:15px">' + esc(t.best_by_stats || 'n/a') +
+      '</div><div class="s">chosen by statistics alone</div></div>' +
+      '<div><div class="k">Best with labels</div><div class="n" style="font-size:15px">' + esc(t.best_by_real || 'n/a') +
+      '</div><div class="s">the answer</div></div>';
+
+    if (t.spearman == null) {
+      $('#v3').innerHTML = '<b>Too few configurations to put a number on it.</b> ' +
+        (t.n_configs || rows.length) + ' points cannot support a rank correlation worth quoting, and the page will not quote one. ' +
+        'What can be said is whether the setting the statistics pick is the setting that wins: they chose ' +
+        esc(t.best_by_stats || 'nothing') + ', and the labels chose ' + esc(t.best_by_real || 'nothing') + '.';
+    } else if (t.verdict_supports_thesis) {
+      $('#v3').innerHTML = '<b>Unlabelled statistics do pick settings that work, on this system.</b> ' +
+        'The two rankings agree to ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
+        ' configurations, and the setting chosen without labels, ' + esc(t.best_by_stats) +
+        ', is ' + (t.best_by_stats === t.best_by_real ? 'the same one the labels chose' : 'not the one the labels chose, ' + esc(t.best_by_real)) +
+        '. That is one species and one microscope, so it is evidence that the loop is worth building rather than proof it generalises.';
+    } else {
+      $('#v3').innerHTML = '<b>Unlabelled statistics do not pick the settings that work here.</b> ' +
+        'The two rankings agree to only ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
+        ' configurations. Matching what a frame looks like is not the same as matching what a detector needs, and on this system the difference is large enough to matter. ' +
+        'That is a finding rather than a failure: it says the tuning signal has to come from somewhere other than plain image statistics.';
+    }
+  }
+
+  function fillProse() {
+    var b = D.baseline || {}, dr = D.defaults_run || {}, m = D.metric || {}, rd = D.real_data || {}, hw = D.hardware || {};
+    $('#byrepo').textContent = (D.repo && D.repo.url ? D.repo.url.replace('https://github.com/', '') : 'deeptangle');
+    $('#dek').innerHTML =
+      'The detector this page takes apart was trained entirely on simulated worms, by the group that wrote both. ' +
+      '<strong>Changing one simulator setting at a time and retraining shows which of them the result actually depends on</strong>, ' +
+      'scored against ' + (rd.clips != null ? rd.clips + ' clips of real footage a human labelled' : 'real labelled footage') + '. ' +
+      'The last act asks the question the fellowship is built on: whether those settings can be chosen with no labels at all.';
+    $('#baselinestat').innerHTML =
+      '<div><div class="k">Published weights</div><div class="n">' + num(b.real_score) +
+      '</div><div class="s">' + esc(b.what || 'the model released with the paper') + '</div></div>' +
+      '<div><div class="k">Retrained here</div><div class="n">' + num(dr.real_score) +
+      '</div><div class="s">same settings, shorter training</div></div>' +
+      '<div><div class="k">Real clips</div><div class="n">' + (rd.clips != null ? rd.clips : 'n/a') +
+      '</div><div class="s">' + esc(rd.licence || '') + '</div></div>' +
+      '<div><div class="k">Metric</div><div class="n" style="font-size:15px">' + esc(m.name || 'n/a') +
+      '</div><div class="s">' + esc(m.what_it_measures || '') + '</div></div>';
+    $('#v1').innerHTML = b.real_score == null
+      ? '<b>The baseline has not finished running.</b> Until it has, no number on this page should be read.'
+      : '<b>The scoring code reproduces the published model at ' + num(b.real_score) + ' on real footage.</b> ' +
+        (b.paper_reports != null
+          ? 'The paper reports ' + num(b.paper_reports) + ' on its own evaluation, so the two are close enough that the code below is measuring what it claims to. '
+          : 'The paper does not report a directly comparable figure, so this is an internal reference rather than a reproduction. ') +
+        (dr.real_score != null
+          ? 'Retraining with the authors\' own settings at the shorter schedule used here reaches ' + num(dr.real_score) +
+            ', and that offset, not the published number, is what every swept configuration should be compared against.'
+          : '');
+    $('#hardwaretext').textContent = hw.where
+      ? 'Every model was trained on ' + hw.where + ', a ' + (hw.gpu || 'single GPU') + ', through ' +
+        (hw.backend || 'the repository\'s own stack') + ', at ' +
+        (hw.one_run_seconds != null ? Math.round(hw.one_run_seconds / 60) + ' minutes a run' : 'a reduced schedule') + '.'
+      : '';
+    var lims = D.limits || [];
+    $('#lim1').textContent = lims[0] || 'One setting is moved at a time, so nothing here says what happens when two are wrong together, which is the usual case.';
+    $('#lim2').textContent = lims[1] || 'The real footage is one published labelled set from the same laboratory that wrote the simulator, so it is the friendliest real data this system will ever see.';
+    if (D.repo) {
+      $('#src-repo').innerHTML = 'The detector and its simulator: <a href="' + esc(D.repo.url) + '">' +
+        esc((D.repo.url || '').replace('https://github.com/', '')) + '</a>, commit ' + esc(D.repo.commit || '') +
+        ', licensed ' + esc(D.repo.licence || '') + '. Used unmodified.';
+    }
+    if (rd.url) {
+      $('#src-data').innerHTML = 'The labelled real footage: <a href="' + esc(rd.url) + '">' + esc(rd.source || rd.url) +
+        '</a>, ' + esc(rd.licence || '') + '.';
+    }
+  }
+
+  function tour() {
+    var root = $('#tour'), hl = $('.tour-hl', root), card = $('.tour-card', root), idx = 0;
+    var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var STEPS = [
+      { sel: 'header h1', k: 'Welcome · 1 of 5', html: 'A detector trained entirely on simulated worms, taken apart to find which of the simulator\'s settings the result depends on.' },
+      { sel: '#domain', k: 'The loop · 2 of 5', html: 'Settings make synthetic footage, synthetic footage trains a model, the model is scored on real footage. The dashed line is the loop the fellowship wants closed without labels.' },
+      { sel: '#baselinestat', k: 'The reference · 3 of 5', html: 'The published weights scored by this page\'s own code. If this disagreed with the paper, nothing further would be worth reading.' },
+      { sel: '#sweepviz', k: 'One knob at a time · 4 of 5', html: '<b>Click a setting above the chart.</b> Each point is a model trained from scratch with that setting moved and scored on the same real footage.' },
+      { sel: '#thesisviz', k: 'The real question · 5 of 5', html: 'Every configuration ranked twice: once by real score, once by how closely its synthetic frames match real ones statistically, with no labels. Whether those two agree is the point of the page.' }
+    ];
+    function place() {
+      var st = STEPS[idx], elm = document.querySelector(st.sel);
+      if (!elm) { next(); return; }
+      var r = elm.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+      var docTop = r.top + sy, docLeft = r.left + sx;
+      root.style.height = document.documentElement.scrollHeight + 'px';
+      var maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      var target = Math.max(0, Math.min(docTop - 14, maxScroll)), vTop = docTop - target;
+      var cw = Math.min(400, innerWidth - 32), ch = 250;
+      var fitsRight = r.left + r.width + 18 + cw <= innerWidth - 16;
+      var hh = fitsRight ? r.height : Math.max(120, Math.min(r.height, innerHeight - vTop - ch - 40));
+      hl.style.left = (docLeft - 8) + 'px'; hl.style.top = (docTop - 8) + 'px';
+      hl.style.width = (r.width + 16) + 'px'; hl.style.height = (hh + 16) + 'px';
+      var dots = STEPS.map(function (_, i) { return '<i class="' + (i === idx ? 'on' : '') + '"></i>'; }).join('');
+      card.innerHTML = '<div class="tk">' + st.k + '</div><p>' + st.html + '</p><div class="tour-nav"><div class="dots">' + dots + '</div>' +
+        (idx > 0 ? '<button class="tour-btn" id="tprev">Back</button>' : '') +
+        '<button class="tour-btn" id="tskip">Close</button><button class="tour-btn primary" id="tnext">' +
+        (idx < STEPS.length - 1 ? 'Next' : 'Done') + '</button></div>';
+      var cx, cy;
+      if (fitsRight) { cx = docLeft + r.width + 18; cy = docTop; }
+      else { cx = Math.min(docLeft, sx + innerWidth - 16 - cw); cy = docTop + hh + 22; }
+      card.style.left = Math.max(sx + 16, cx) + 'px';
+      card.style.top = Math.max(target + 16, cy) + 'px';
+      $('#tnext').onclick = next; $('#tskip').onclick = stop;
+      var pv = $('#tprev'); if (pv) pv.onclick = function () { idx = Math.max(0, idx - 1); place(); };
+      window.scrollTo({ top: target, behavior: reduced ? 'auto' : 'smooth' });
+    }
+    function next() { if (idx >= STEPS.length - 1) { stop(); return; } idx++; place(); }
+    function stop() { root.classList.remove('on'); try { localStorage.setItem('sg-tour', 'seen'); } catch (e) { } }
+    function start() { idx = 0; root.classList.add('on'); place(); }
+    $('#tourbtn').addEventListener('click', start);
+    var replace = function () { if (root.classList.contains('on')) place(); };
+    window.addEventListener('resize', replace);
+    window.addEventListener('load', replace);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(replace);
+    if (!location.search.includes('tour=off')) setTimeout(start, 700);
+  }
+
+  // A page that renders nothing looks the same as a page whose study has not run,
+  // and fixture data used while building the layout looks the same as a result.
+  // Both get said out loud rather than drawn, so no number here is ever a stand-in.
+  function halt(msg) {
+    var b = document.body;
+    var d = document.createElement('div');
+    d.setAttribute('style', 'margin:24px;padding:16px 18px;border:1px solid #b3261e;' +
+      'border-radius:6px;background:#fff4f3;color:#5b1a14;font:14px/1.5 system-ui,sans-serif');
+    d.textContent = msg;
+    b.insertBefore(d, b.firstChild);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof D === 'undefined') {
+      halt('The study output is missing, so this page has nothing to draw. ' +
+        'Run study/build_page_data.py to write docs/data.js.');
+      return;
+    }
+    if (D.generated_at === 'FIXTURE') {
+      halt('This page is showing fixture data used to check the layout, not a result. ' +
+        'Nothing here is measured. Run study/build_page_data.py against the real sweep output.');
+      return;
+    }
+    drawDomain(); renderAxes(); drawSweep(); drawThesis(); fillProse(); tour();
+  });
+})();
