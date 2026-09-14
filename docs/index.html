@@ -186,7 +186,13 @@ tr.on td{background:#eef2f7}
       <div><b>simulator setting</b> One of the numbers deciding what a synthetic worm looks like
         and how it moves. There are 27 of them and none is exposed as a command-line option.</div>
       <div><b>real score</b> How well a trained model finds the worms a human marked in real
-        footage. Higher is better.</div>
+        footage. Higher is better. It is a <b>recall</b>: of the worms a human marked, the share the
+        model found, counting a worm as found when the predicted body line sits within three pixels
+        of the drawn one.</div>
+      <div><b>precision</b> The other half of the same picture: of everything the model claimed was
+        a worm, the share that matched something a human marked. Low precision means the model cries
+        wolf. It is only a meaningful number if the human marked every worm, which is checked at the
+        bottom of this page rather than assumed.</div>
       <div><b>image statistics</b> Numbers describing what a frame looks like, computed the same
         way on synthetic and real footage, using no labels.</div>
       <div><b>the gap</b> The distance between doing well on synthetic frames and doing well on
@@ -207,11 +213,11 @@ tr.on td{background:#eef2f7}
     structure of real, unlabelled biological datasets.
     <small>University of Copenhagen, PhD fellowship 165870, Simulation-Supervised Machine Learning
       for Biology, read 14 September 2026</small></div>
-  <p class="small">The system in this page is the group's own, the simulator is the group's own,
-  and the real footage is the group's own published labelled set. Nothing here is a demonstration
-  built beside the work; it is a measurement taken inside it. The point of choosing it that way is
-  that the answer either transfers to the fellowship's first month or it does not, with no
-  translation step in between.</p>
+  <p class="small">The detector, the simulator and the labelled real footage are all this group's
+  own published work. That choice was deliberate. A study built on some other laboratory's system
+  would need an argument that its answer carries over; this one either applies to the fellowship's
+  first month or it is wrong, and there is no translation step in between where the claim could
+  quietly weaken.</p>
 </div></section>
 
 <section id="act1"><div class="wrap">
