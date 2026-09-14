@@ -337,7 +337,30 @@
       $('#v3').innerHTML = '<b>Unlabelled statistics do not pick the settings that work here.</b> ' +
         'The two rankings agree to only ' + num(t.spearman, 2) + ' across ' + (t.n_configs || rows.length) +
         ' configurations. Matching what a frame looks like is not the same as matching what a detector needs, and on this system the difference is large enough to matter. ' +
-        'That is a finding rather than a failure: it says the tuning signal has to come from somewhere other than plain image statistics.';
+        'That is a finding rather than a failure: it says the tuning signal has to come from somewhere other than plain image statistics.' +
+        // A weak correlation is only evidence against the thesis if the thing it is
+        // correlated against is itself stable. If seed noise is comparable to the spread
+        // across configurations, the real ranking is partly noise and no statistic could
+        // track it, which would look identical to the thesis being wrong.
+        (function () {
+          var nf = noiseFloor();
+          if (!nf) {
+            return ' One caution before anyone quotes this: no configuration was trained twice, so ' +
+              'there is no measure of how much the real ranking moves on seed alone. If it moves a ' +
+              'lot, no statistic could track it and this null would say more about the noise than ' +
+              'about the idea.';
+          }
+          var sc = rows.map(function (r) { return r.real_score; });
+          var spread = Math.max.apply(null, sc) - Math.min.apply(null, sc);
+          return spread > nf.spread * 2
+            ? ' The real ranking it is measured against is stable enough to carry the weight: the ' +
+              'scores span ' + num(spread, 3) + ' while the same configuration retrained on a different ' +
+              'seed moves ' + num(nf.spread, 3) + '.'
+            : ' <b>Treat this null with care.</b> The scores span only ' + num(spread, 3) +
+              ' while retraining the same configuration on a different seed moves ' + num(nf.spread, 3) +
+              ', so the ranking these statistics failed to predict is itself largely noise. Nothing could ' +
+              'have predicted it, and that is a fact about this schedule rather than about the idea.';
+        })();
     }
   }
 
