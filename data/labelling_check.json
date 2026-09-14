@@ -45,5 +45,35 @@
  "r_squared_through_origin": 0.9744,
  "pearson_r": 0.9877,
  "verdict_exhaustive": true,
- "what_it_means_for_the_page": "labelling tracks density closely enough to treat each crop as fully labelled, so an unmatched detection counts as a false positive and precision is reportable"
+ "what_it_means_for_the_page": "labelling tracks density closely enough to treat each crop as fully labelled, so an unmatched detection counts as a false positive and precision is reportable",
+ "simulator_length_coverage": {
+  "what_it_measures": "the share of hand-drawn real worms whose length falls inside the range the simulator draws from. A worm outside it is one the model was never shown.",
+  "simulator_length_range_px": [
+   30.0,
+   45.0
+  ],
+  "measurable_worms": 1473,
+  "inside_range": 651,
+  "inside_range_pct": 44.2,
+  "real_length_px": {
+   "median": 29.5,
+   "p5": 21.9,
+   "p95": 34.8
+  },
+  "by_recording_date": {
+   "2022-01-24": {
+    "worms": 128,
+    "median_length_px": 24.0
+   },
+   "2022-02-14": {
+    "worms": 1300,
+    "median_length_px": 30.0
+   },
+   "undated": {
+    "worms": 45,
+    "median_length_px": 23.3
+   }
+  },
+  "why_the_dates_matter": "the two recording dates hold worms of different typical length, so there is no single length setting that matches both and the sweep is tuning against a mixture"
+ }
 }

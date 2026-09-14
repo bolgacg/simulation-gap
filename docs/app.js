@@ -331,6 +331,31 @@
     var lims = D.limits || [];
     $('#lim1').textContent = lims[0] || 'One setting is moved at a time, so nothing here says what happens when two are wrong together, which is the usual case.';
     $('#lim2').textContent = lims[1] || 'The real footage is one published labelled set from the same laboratory that wrote the simulator, so it is the friendliest real data this system will ever see.';
+
+    // The hardest limit on this page, and it is a limit on the approach rather than on
+    // the sweep: a real worm outside the length range the simulator draws from is a worm
+    // no configuration can produce, so no amount of tuning reaches it.
+    var cov = (D.labelling_check || {}).simulator_length_coverage;
+    var l3 = $('#lim3');
+    if (l3) {
+      if (!cov) { l3.textContent = ''; }
+      else {
+        var dates = Object.keys(cov.by_recording_date || {}).filter(function (k) { return /\d{4}-/.test(k); });
+        var spread = '';
+        if (dates.length >= 2) {
+          var a = cov.by_recording_date[dates[0]], b2 = cov.by_recording_date[dates[dates.length - 1]];
+          spread = ' And there is no single right answer to aim at: worms recorded on ' + esc(dates[0]) +
+            ' have a median length of ' + a.median_length_px + ' px against ' + b2.median_length_px +
+            ' px on ' + esc(dates[dates.length - 1]) + ', so one length setting cannot match both ' +
+            'and every configuration here is being tuned against a mixture.';
+        }
+        l3.innerHTML = '<b>Only ' + cov.inside_range_pct + ' percent of the real worms are inside the ' +
+          'length range the simulator can produce</b>, which is ' + cov.simulator_length_range_px[0] +
+          ' to ' + cov.simulator_length_range_px[1] + ' pixels against a real median of ' +
+          cov.real_length_px.median + '. A worm outside that range is one no configuration on this page ' +
+          'can generate, so it is a limit on the whole approach rather than on this sweep.' + spread;
+      }
+    }
     if (D.repo) {
       $('#src-repo').innerHTML = 'The detector and its simulator: <a href="' + esc(D.repo.url) + '">' +
         esc((D.repo.url || '').replace('https://github.com/', '')) + '</a>, commit ' + esc(D.repo.commit || '') +
