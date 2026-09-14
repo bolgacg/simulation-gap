@@ -135,9 +135,14 @@ module with "train" in its path silently shadows the real one in the run record.
 
 ## What it cannot tell you
 
-- Four axes, sixteen configurations, one run each. No interactions between settings are
-  measured, and no run is repeated, so a difference smaller than run-to-run noise is not a
-  difference.
+- Four of the simulator's settings are swept, not all of them. This is a sample of the
+  simulator rather than a survey, and nothing here speaks for the settings left alone.
+- No interactions between settings are measured. Each configuration moves one thing.
+- A difference between two configurations means nothing until you know how far the same
+  configuration moves when only the random seed changes, so the default settings are
+  trained more than once and the spread between those runs is the floor. The page refuses
+  to say which setting is worth tuning unless the largest effect clears that floor, and if
+  nothing clears it the page says so instead of ranking noise.
 - The schedule here is far shorter than the published one. It is held identical across
   every configuration, so the comparison between them is fair, but none of these models is
   as good as the published one.
